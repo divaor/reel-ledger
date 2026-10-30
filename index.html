@@ -1,0 +1,699 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#101216">
+<meta name="description" content="Track the IMDb Top 250 and every Best Picture nominee you have seen.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html,body{margin:0}body{font-size:14px}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Reel Ledger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=Hanken+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: projection-booth ledger. Dark-first; posters are the color, statuette brass marks Oscar things, a teal punch marks "seen". */
+:root{
+  --bg:#101216; --panel:#181b21; --raise:#21252d; --line:#2c313b;
+  --fg:#eceae4; --muted:#9aa0ab; --faint:#6b717c;
+  --brass:#d6a64a; --brass-ink:#1b1408; --seen:#3fc2a6; --seen-ink:#06221c; --want:#e58a5f;
+  --display:"Big Shoulders Display","Arial Narrow","Roboto Condensed",sans-serif;
+  --body:"Hanken Grotesk",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  --tabh:62px;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){ :root:not([data-theme="dark"]){
+  --bg:#eef0f2; --panel:#ffffff; --raise:#e3e6ea; --line:#d3d7dd;
+  --fg:#16181c; --muted:#5b616b; --faint:#8a9099;
+  --brass:#9a6a12; --brass-ink:#fff8e8; --seen:#0f8a72; --seen-ink:#ffffff; --want:#c0582b;
+  color-scheme:light } }
+:root[data-theme="light"]{
+  --bg:#eef0f2; --panel:#ffffff; --raise:#e3e6ea; --line:#d3d7dd;
+  --fg:#16181c; --muted:#5b616b; --faint:#8a9099;
+  --brass:#9a6a12; --brass-ink:#fff8e8; --seen:#0f8a72; --seen-ink:#ffffff; --want:#c0582b;
+  color-scheme:light }
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.45;-webkit-tap-highlight-color:transparent;overscroll-behavior-y:contain}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--bg)}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+.wrap{padding-left:max(14px,env(safe-area-inset-left,0px));padding-right:max(14px,env(safe-area-inset-right,0px))}
+@media (min-width:420px){.wrap{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}}
+
+/* header */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.top .wrap{padding-block:10px 8px;display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
+.brandrow{display:flex;align-items:baseline;gap:10px;min-width:0}
+.brand{font-family:var(--display);font-weight:800;font-size:26px;letter-spacing:.02em;text-transform:uppercase;line-height:1;margin:0}
+.brand b{color:var(--brass);font-weight:800}
+.viewname{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-left:auto;white-space:nowrap}
+.searchrow{display:flex;gap:8px}
+.search{flex:1;min-width:0;display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:0 10px;height:40px}
+.search input{flex:1;min-width:0;border:0;background:transparent;outline:none;font-size:15px}
+.search svg{flex:none;color:var(--faint)}
+.fbtn{position:relative;flex:none;height:40px;padding:0 12px;border-radius:10px;border:1px solid var(--line);background:var(--panel);display:flex;align-items:center;gap:6px;font-weight:600;font-size:14px}
+.fbtn .n{min-width:18px;height:18px;border-radius:9px;background:var(--brass);color:var(--brass-ink);font-size:11px;font-weight:700;display:grid;place-items:center;padding:0 5px}
+.chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 -2px;padding:0 2px}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;height:32px;padding:0 12px;border-radius:16px;border:1px solid var(--line);background:transparent;font-size:13px;font-weight:600;color:var(--muted);display:flex;align-items:center;gap:6px;white-space:nowrap}
+.chip[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.chip .ct{font-family:var(--mono);font-size:11px;opacity:.75}
+
+/* progress */
+.tally{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding-block:12px 4px}
+.tile{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:9px 10px 10px;min-width:0}
+.tile .k{font-size:11px;color:var(--muted);font-weight:600;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile .v{font-family:var(--display);font-weight:800;font-size:24px;line-height:1.05;font-variant-numeric:tabular-nums}
+.tile .v small{font-family:var(--body);font-size:12px;font-weight:600;color:var(--faint)}
+.bar{height:4px;border-radius:2px;background:var(--raise);margin-top:6px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--seen);border-radius:2px}
+.tile.gold .bar i{background:var(--brass)}
+.resinfo{font-size:12px;color:var(--muted);padding-block:10px 6px;display:flex;justify-content:space-between;gap:8px}
+.resinfo button{border:0;background:none;color:var(--brass);font-weight:600;font-size:12px;padding:0}
+
+/* grid */
+main{padding-bottom:calc(var(--tabh) + env(safe-area-inset-bottom,0px) + 24px)}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px 10px}
+@media (min-width:560px){.grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media (min-width:820px){.grid{grid-template-columns:repeat(6,minmax(0,1fr))}}
+.card{min-width:0;content-visibility:auto;contain-intrinsic-size:auto 230px}
+.pwrap{position:relative;display:block;width:100%;container-type:inline-size;aspect-ratio:2/3;border-radius:8px;overflow:hidden;background:var(--raise);border:0;padding:0}
+.pwrap img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none}
+.pwrap .fallback{pointer-events:none}
+.mark,.badges,.wantflag{z-index:2}
+.card.is-seen .pwrap img,.card.is-seen .fallback{filter:saturate(.55) brightness(.75)}
+.fallback{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;padding:8px 8px 30px;text-align:left;color:#f4f1ea;background:linear-gradient(160deg,hsl(var(--h) 38% 30%),hsl(calc(var(--h) + 40) 45% 13%))}
+.fallback .ft{font-family:var(--display);font-weight:800;text-transform:uppercase;font-size:calc(var(--fs,15) * 0.83cqw);line-height:1.02;letter-spacing:.01em;overflow-wrap:break-word;hyphens:auto;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden}
+.fallback .fy{font-family:var(--mono);font-size:max(9px,8.5cqw);opacity:.75;margin-top:4px}
+.mark{position:absolute;top:0;right:0;width:44px;height:44px;border:0;background:none;padding:6px;display:flex;justify-content:flex-end;align-items:flex-start}
+.mark span{width:26px;height:26px;border-radius:7px;border:2px solid rgba(255,255,255,.85);background:rgba(10,12,16,.45);display:grid;place-items:center;transition:transform .12s}
+.mark svg{opacity:0}
+.is-seen .mark span{background:var(--seen);border-color:var(--seen)}
+.is-seen .mark svg{opacity:1;color:var(--seen-ink)}
+.mark:active span{transform:scale(.88)}
+.badges{position:absolute;left:5px;bottom:5px;display:flex;gap:4px;flex-wrap:wrap;pointer-events:none}
+.bdg{font-family:var(--mono);font-size:10px;font-weight:500;line-height:1;padding:4px 5px;border-radius:5px;background:rgba(10,12,16,.78);color:#f4f1ea}
+.bdg.gold{background:#d6a64a;color:#1b1408}
+.bdg.nom{background:rgba(214,166,74,.25);color:#f3dca6;border:1px solid rgba(214,166,74,.6)}
+.wantflag{position:absolute;top:0;left:7px;width:16px;height:22px;background:var(--want);clip-path:polygon(0 0,100% 0,100% 100%,50% 76%,0 100%);pointer-events:none}
+.ctitle{display:block;margin-top:6px;font-weight:600;font-size:13px;line-height:1.22;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;background:none;border:0;padding:0;text-align:left;width:100%}
+.cyear{font-family:var(--mono);font-size:11px;color:var(--faint)}
+.more{display:block;margin:22px auto 0;height:44px;padding:0 22px;border-radius:22px;border:1px solid var(--line);background:var(--panel);font-weight:600}
+.empty{padding:40px 8px;text-align:center;color:var(--muted)}
+.empty h3{font-family:var(--display);font-size:22px;text-transform:uppercase;margin:0 0 6px;color:var(--fg)}
+
+/* oscars */
+.cer{border-top:1px solid var(--line);padding-block:14px 16px}
+.cerhead{display:flex;align-items:baseline;gap:10px;margin-bottom:10px}
+.cerhead h2{margin:0;font-family:var(--display);font-weight:800;font-size:22px;text-transform:uppercase;letter-spacing:.02em;line-height:1}
+.cerhead .sub{font-size:12px;color:var(--muted)}
+.cerhead .pc{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--muted);white-space:nowrap}
+.cerhead .pc.full{color:var(--seen)}
+.winner{display:grid;grid-template-columns:84px minmax(0,1fr);gap:12px;align-items:start}
+.winner .info{min-width:0;padding-top:2px}
+.eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--brass)}
+.winner h3{margin:2px 0 2px;font-family:var(--display);font-weight:800;font-size:21px;line-height:1.02;text-transform:uppercase;text-wrap:balance}
+.winner h3 button{all:unset;cursor:pointer}
+.winner .meta{font-size:13px;color:var(--muted)}
+.wbtns{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.noms{display:flex;gap:9px;overflow-x:auto;margin-top:12px;padding-bottom:4px;scrollbar-width:none;scroll-snap-type:x proximity}
+.noms::-webkit-scrollbar{display:none}
+.noms .card{flex:none;width:86px;scroll-snap-align:start;content-visibility:visible}
+.noms .ctitle{font-size:12px}
+.seg{display:flex;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:3px;gap:3px;margin-top:12px}
+.seg button{flex:1;height:32px;border:0;border-radius:7px;background:none;font-weight:600;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--raise);color:var(--fg)}
+
+/* toggle pills (seen / want) */
+.pill{height:34px;padding:0 12px;border-radius:17px;border:1px solid var(--line);background:var(--panel);font-weight:600;font-size:13px;display:inline-flex;align-items:center;gap:6px}
+.pill[aria-pressed="true"].seen{background:var(--seen);border-color:var(--seen);color:var(--seen-ink)}
+.pill[aria-pressed="true"].want{background:var(--want);border-color:var(--want);color:#1d0d05}
+
+/* tabs */
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:25;background:var(--panel);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+.tabs nav{display:grid;grid-template-columns:repeat(4,1fr);height:var(--tabh)}
+.tabs a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;text-decoration:none;color:var(--faint);font-size:11px;font-weight:600;letter-spacing:.02em}
+.tabs a[aria-current="page"]{color:var(--fg)}
+.tabs a[aria-current="page"] svg{color:var(--brass)}
+
+/* sheets */
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:40;opacity:0;transition:opacity .2s}
+.scrim.on{opacity:1}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:41;max-height:92%;background:var(--bg);border-radius:18px 18px 0 0;border-top:1px solid var(--line);display:flex;flex-direction:column;transform:translateY(102%);transition:transform .26s cubic-bezier(.2,.8,.2,1);max-width:720px;margin:0 auto}
+.sheet.on{transform:none}
+@media (prefers-reduced-motion: reduce){.sheet,.scrim{transition:none}}
+.grab{flex:none;display:flex;justify-content:space-between;align-items:center;padding:10px max(14px,env(safe-area-inset-right,0px)) 6px max(14px,env(safe-area-inset-left,0px))}
+.grab .h{width:40px;height:4px;border-radius:2px;background:var(--line);position:absolute;left:50%;top:7px;transform:translateX(-50%)}
+.grab .st{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.x{width:36px;height:36px;border-radius:18px;border:1px solid var(--line);background:var(--panel);display:grid;place-items:center}
+.sbody{overflow-y:auto;padding-bottom:calc(24px + env(safe-area-inset-bottom,0px));-webkit-overflow-scrolling:touch}
+.dhead{display:grid;grid-template-columns:118px minmax(0,1fr);gap:14px;align-items:start}
+.dhead .pwrap{border-radius:10px}
+.dtitle{margin:0;font-family:var(--display);font-weight:800;font-size:30px;line-height:.98;text-transform:uppercase;text-wrap:balance;overflow-wrap:anywhere}
+.dsub{font-size:13px;color:var(--muted);margin-top:6px}
+.dchips{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.tag{font-size:11px;font-weight:600;padding:3px 7px;border-radius:5px;background:var(--raise);color:var(--fg)}
+.tag.gold{background:var(--brass);color:var(--brass-ink)}
+.tag.line{background:transparent;border:1px solid var(--line);color:var(--muted)}
+.dact{display:flex;gap:8px;margin-top:14px}
+.dact .pill{flex:1;justify-content:center;height:42px;border-radius:21px;font-size:14px}
+.plot{font-size:15px;line-height:1.55;margin:16px 0 0;max-width:65ch}
+.facts{display:grid;grid-template-columns:auto minmax(0,1fr);gap:7px 14px;margin:16px 0 0;font-size:14px}
+.facts dt{color:var(--muted);font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding-top:2px}
+.facts dd{margin:0;min-width:0}
+.yes{color:var(--seen);font-weight:700}
+.sec{margin-top:22px}
+.sec h4{margin:0 0 8px;font-family:var(--display);font-weight:800;font-size:18px;text-transform:uppercase;letter-spacing:.03em;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px}
+.sec h4 small{font-family:var(--mono);font-size:11px;font-weight:500;color:var(--muted);letter-spacing:0;text-transform:none}
+.race{display:grid;gap:2px}
+.rrow{display:grid;grid-template-columns:40px minmax(0,1fr) 44px;gap:10px;align-items:center;padding:5px 0;border-bottom:1px solid var(--line)}
+.rrow:last-child{border-bottom:0}
+.rrow .thumb{width:40px;aspect-ratio:2/3;border-radius:4px;overflow:hidden;position:relative;background:var(--raise)}
+.rrow .thumb img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+.rrow .thumb .fallback{padding:3px}.dhead .fallback{padding:10px}.rrow .thumb .ft{font-size:7px!important;-webkit-line-clamp:4}.rrow .thumb .fy{display:none}
+.rrow .nm{background:none;border:0;padding:0;text-align:left;min-width:0}
+.rrow .nm b{display:block;font-weight:600;font-size:14px;line-height:1.25}
+.rrow .nm span{font-size:12px;color:var(--muted)}
+.rrow.cur .nm b{color:var(--brass)}
+.box{width:44px;height:44px;border:0;background:none;display:grid;place-items:center}
+.box span{width:26px;height:26px;border-radius:7px;border:2px solid var(--faint);display:grid;place-items:center}
+.box svg{opacity:0}
+.box[aria-pressed="true"] span{background:var(--seen);border-color:var(--seen)}
+.box[aria-pressed="true"] svg{opacity:1;color:var(--seen-ink)}
+.olist{margin:0;padding:0;list-style:none;display:grid;gap:4px;font-size:14px}
+.olist li{display:flex;gap:8px;align-items:baseline}
+.olist .dot{width:8px;height:8px;border-radius:4px;flex:none;transform:translateY(-1px)}
+.links{display:flex;gap:8px;flex-wrap:wrap;margin-top:22px}
+.links a{height:36px;padding:0 14px;border-radius:18px;border:1px solid var(--line);display:inline-flex;align-items:center;text-decoration:none;color:var(--fg);font-weight:600;font-size:13px}
+.note{font-size:12px;color:var(--faint);margin-top:14px}
+
+/* filter sheet */
+.fgroup{margin-top:16px}
+.fgroup h5{margin:0 0 8px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.fgroup .chips{flex-wrap:wrap;overflow:visible}
+.frow{display:flex;gap:8px;margin-top:22px}
+.frow button{flex:1;height:44px;border-radius:22px;font-weight:700;border:1px solid var(--line);background:var(--panel)}
+.frow .go{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+
+/* lists view */
+.lcard{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;margin-top:12px}
+.lcard h3{margin:0;font-family:var(--display);font-weight:800;font-size:20px;text-transform:uppercase;letter-spacing:.02em}
+.lcard p{margin:6px 0 0;color:var(--muted);font-size:13px;max-width:65ch}
+.lhead{display:flex;align-items:center;gap:10px}
+.lhead .cnt{margin-left:auto;font-family:var(--mono);font-size:12px;color:var(--muted)}
+.lbtns{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.btn{height:38px;padding:0 14px;border-radius:19px;border:1px solid var(--line);background:var(--raise);font-weight:600;font-size:13px}
+.btn.pri{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.btn.danger{color:var(--want)}
+.field{display:grid;gap:4px;margin-top:10px}
+.field label{font-size:12px;font-weight:600;color:var(--muted)}
+.field input,.field select,.field textarea{width:100%;min-width:0;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:9px 10px;font-size:15px}
+.field textarea{min-height:110px;font-family:var(--mono);font-size:12px}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
+.sectitle{font-family:var(--display);font-weight:800;font-size:24px;text-transform:uppercase;margin:22px 0 0;letter-spacing:.02em}
+.toast{position:fixed;left:50%;bottom:calc(var(--tabh) + env(safe-area-inset-bottom,0px) + 14px);transform:translateX(-50%) translateY(20px);opacity:0;background:var(--fg);color:var(--bg);font-weight:600;font-size:13px;padding:9px 14px;border-radius:20px;z-index:60;transition:all .2s;pointer-events:none;max-width:calc(100% - 32px)}
+.toast.on{opacity:1;transform:translateX(-50%)}
+.loading{padding:60px 0;text-align:center;color:var(--muted);font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+</style>
+
+</head>
+<body>
+<header class="top" id="top">
+  <div class="wrap">
+    <div class="brandrow"><h1 class="brand">Reel <b>Ledger</b></h1><span class="viewname" id="viewname">All titles</span></div>
+    <div class="searchrow" id="searchrow">
+      <label class="search"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="q" type="search" placeholder="Title, director, actor…" autocomplete="off" aria-label="Search"></label>
+      <button class="fbtn" id="fbtn" type="button" aria-label="Filters and sort"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg>Filters<span class="n" id="fcount" hidden>0</span></button>
+    </div>
+    <div class="chips" id="statuschips" role="group" aria-label="Status"></div>
+  </div>
+</header>
+
+<main id="main" class="wrap"><div class="loading">Loading the ledger…</div></main>
+
+<div class="tabs"><nav id="tabs">
+  <a href="#all" data-v="all"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5"/></svg>All</a>
+  <a href="#imdb" data-v="imdb"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="m12 3 2.7 5.6 6.1.8-4.5 4.2 1.1 6.1L12 16.8l-5.4 2.9 1.1-6.1-4.5-4.2 6.1-.8z"/></svg>Top 250</a>
+  <a href="#oscars" data-v="oscars"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="4.5" r="2"/><path d="M10 8.5h4l-.6 7h-2.8zM11 15.5v3M13 15.5v3M8 21h8M9 18.5h6"/></svg>Oscars</a>
+  <a href="#lists" data-v="lists"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.2" fill="currentColor"/><circle cx="4.5" cy="12" r="1.2" fill="currentColor"/><circle cx="4.5" cy="18" r="1.2" fill="currentColor"/></svg>Lists</a>
+</nav></div>
+
+<div class="scrim" id="scrim" hidden></div>
+<section class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="Details" hidden>
+  <div class="grab"><span class="h"></span><span class="st" id="sheettitle"></span><button class="x" id="sheetx" type="button" aria-label="Close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+  <div class="sbody wrap" id="sbody"></div>
+</section>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(()=>{
+"use strict";
+/* ---------- tiny helpers ---------- */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const CHECK='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>';
+const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const ord=n=>n+(['th','st','nd','rd'][(n%100-20)%10]||['th','st','nd','rd'][n%100]||'th');
+const hue=s=>{let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))%360;return h};
+const norm=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+let toastT;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('on'),1800)}
+
+/* ---------- media types: add a new kind of thing here ---------- */
+const MEDIA={
+  movie:{label:'Movie',plural:'Movies',creator:'Director'},
+  series:{label:'Series',plural:'Series',creator:'Creator'},
+  book:{label:'Book',plural:'Books',creator:'Author'},
+  game:{label:'Game',plural:'Games',creator:'Studio'},
+  other:{label:'Other',plural:'Other',creator:'Creator'}
+};
+
+/* ---------- state ---------- */
+const S={
+  cat:null, items:{}, lists:[], ceremonies:[],
+  marks:store.get('rl.marks',{}),            // key -> {s:1 seen, w:1 want, t:timestamp}
+  custom:store.get('rl.custom',{lists:[],items:{}}),
+  posters:store.get('rl.posters',{}),        // key -> {u:url,w:wikiTitle} or {u:''}
+  view:'all', shown:90,
+  f:{q:'',status:'all',src:[],genre:[],decade:[],flags:[],media:[],sort:'auto'},
+  oscarMode:'races'
+};
+const saveMarks=()=>store.set('rl.marks',S.marks);
+const saveCustom=()=>store.set('rl.custom',S.custom);
+const isSeen=k=>!!S.marks[k]?.s, isWant=k=>!!S.marks[k]?.w;
+function setMark(k,field,val){
+  const m=S.marks[k]||{}; if(val)m[field]=1; else delete m[field];
+  if(field==='s'&&val){delete m.w;m.t=Date.now()}
+  if(Object.keys(m).filter(x=>x!=='t').length)S.marks[k]=m; else delete S.marks[k];
+  saveMarks(); refreshMarks(k);
+}
+
+/* ---------- data ---------- */
+async function load(){
+  let cat;
+  try{const r=await fetch('data/catalog.json',{cache:'no-cache'});cat=await r.json()}
+  catch(e){$('#main').innerHTML='<div class="empty"><h3>Could not load the catalog</h3><p>Check your connection and reopen the app.</p></div>';return}
+  S.cat=cat;
+  for(const it of cat.items)S.items[it.key]={media:'movie',...it};
+  S.ceremonies=cat.ceremonies.sort((a,b)=>b.ceremony-a.ceremony);
+  for(const c of S.ceremonies)for(const k of c.nominees){const it=S.items[k];if(it){it.bp={ceremony:c.ceremony,winner:k===c.winner}}}
+  mergeCustom();
+  route();
+  setTimeout(()=>posterFetcher(),600);
+}
+function mergeCustom(){
+  for(const k of Object.keys(S.items))if(S.items[k].custom)delete S.items[k];
+  for(const it of Object.values(S.custom.items))S.items[it.key]={...it,custom:true};
+  S.lists=[
+    {id:'imdb',name:'IMDb Top 250',media:'movie',builtin:true,keys:Object.values(S.items).filter(i=>i.imdbRank).sort((a,b)=>a.imdbRank-b.imdbRank).map(i=>i.key)},
+    {id:'bpw',name:'Best Picture winners',media:'movie',builtin:true,keys:S.ceremonies.map(c=>c.winner).filter(Boolean)},
+    {id:'bpn',name:'Best Picture nominees',media:'movie',builtin:true,keys:S.ceremonies.flatMap(c=>c.nominees)},
+    ...S.custom.lists.map(l=>({...l,keys:l.keys||[]}))
+  ];
+  for(const it of Object.values(S.items))it._lists=[];
+  for(const l of S.lists)for(const k of l.keys)S.items[k]&&S.items[k]._lists.push(l.id);
+  for(const it of Object.values(S.items)){
+    it._q=norm([it.title,it.originalTitle,it.year,...(it.directors||[]),...(it.cast||[]),...(it.writers||[]),it.creator,it.source].join(' '));
+  }
+}
+
+/* ---------- filters ---------- */
+const FLAGS=[
+  ['true','Based on a true story',i=>i.trueStory],
+  ['hist','Historical / period',i=>i.historical],
+  ['book','Based on a book',i=>/novel|short story|book/i.test(i.basedOn||'')],
+  ['anim','Animated',i=>(i.genres||[]).includes('Animation')],
+  ['intl','Not in English',i=>i.languages&&i.languages.length&&i.languages[0]!=='English'],
+  ['short','Under 100 min',i=>i.runtime&&i.runtime<100],
+  ['long','Over 150 min',i=>i.runtime>150],
+  ['bw','Before 1960',i=>i.year&&i.year<1960],
+  ['new','2020 or later',i=>i.year>=2020],
+  ['multi','3+ Oscar wins',i=>(i.oscars?.wins||0)>=3]
+];
+const SORTS={auto:'Best for this view',rank:'IMDb rank',rating:'IMDb rating',newest:'Newest first',oldest:'Oldest first',title:'Title A–Z',oscars:'Most Oscar wins',recent:'Recently marked seen'};
+function activeFilterCount(){const f=S.f;return f.src.length+f.genre.length+f.decade.length+f.flags.length+f.media.length+(f.sort!=='auto'?1:0)}
+function passes(it,ignoreStatus){
+  const f=S.f;
+  if(f.q&&!it._q.includes(norm(f.q)))return false;
+  if(!ignoreStatus){
+    if(f.status==='seen'&&!isSeen(it.key))return false;
+    if(f.status==='unseen'&&isSeen(it.key))return false;
+    if(f.status==='want'&&!isWant(it.key))return false;
+  }
+  if(f.src.length&&!f.src.some(s=>it._lists.includes(s)))return false;
+  if(f.media.length&&!f.media.includes(it.media))return false;
+  if(f.genre.length&&!f.genre.some(g=>(it.genres||[]).includes(g)))return false;
+  if(f.decade.length&&!f.decade.includes(Math.floor((it.year||0)/10)*10))return false;
+  for(const fl of f.flags){const d=FLAGS.find(x=>x[0]===fl);if(d&&!d[2](it))return false}
+  return true;
+}
+function sorted(arr,def){
+  const s=S.f.sort==='auto'?def:S.f.sort;
+  const by={
+    rank:(a,b)=>(a.imdbRank||9e9)-(b.imdbRank||9e9)||(b.imdbVotes||0)-(a.imdbVotes||0),
+    rating:(a,b)=>(b.imdbRating||0)-(a.imdbRating||0),
+    newest:(a,b)=>(b.year||0)-(a.year||0)||a.title.localeCompare(b.title),
+    oldest:(a,b)=>(a.year||0)-(b.year||0)||a.title.localeCompare(b.title),
+    title:(a,b)=>a.title.replace(/^(the|a|an) /i,'').localeCompare(b.title.replace(/^(the|a|an) /i,'')),
+    oscars:(a,b)=>(b.oscars?.wins||0)-(a.oscars?.wins||0)||(b.oscars?.noms||0)-(a.oscars?.noms||0),
+    recent:(a,b)=>(S.marks[b.key]?.t||0)-(S.marks[a.key]?.t||0),
+    popular:(a,b)=>((a.imdbRank?0:1)-(b.imdbRank?0:1))||(a.imdbRank||0)-(b.imdbRank||0)||(b.bp?.winner?1:0)-(a.bp?.winner?1:0)||(b.year||0)-(a.year||0)
+  };
+  return arr.sort(by[s]||by.popular);
+}
+
+/* ---------- posters ---------- */
+function posterHTML(it,cls=''){
+  const p=it.poster||S.posters[it.key]?.u;
+  const lw=Math.max(...String(it.title).split(/\s+/).map(w=>w.length));
+  const fb=`<span class="fallback" lang="en" style="--h:${hue(it.title)};--fs:${lw>11?11:lw>9?12.5:lw>7?14:15}"><span class="ft">${esc(it.title)}</span><span class="fy">${esc(it.year||'')}</span></span>`;
+  return fb+(p?`<img src="${esc(p)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.remove()">`:'');
+}
+async function posterFetcher(){
+  const need=Object.values(S.items).filter(i=>!i.custom&&!(i.key in S.posters));
+  if(!need.length)return;
+  const save=()=>store.set('rl.posters',S.posters);
+  const titles={};
+  try{
+    // 1) IMDb id -> English Wikipedia article, via Wikidata
+    const withId=need.filter(i=>i.imdb);
+    for(let i=0;i<withId.length;i+=120){
+      const ids=withId.slice(i,i+120);
+      const q=`SELECT ?imdb ?a WHERE{VALUES ?imdb{${ids.map(x=>`"${x.imdb}"`).join(' ')}} ?f wdt:P345 ?imdb. ?a schema:about ?f; schema:isPartOf <https://en.wikipedia.org/>.}`;
+      const r=await fetch('https://query.wikidata.org/sparql?format=json&query='+encodeURIComponent(q),{headers:{Accept:'application/sparql-results+json'}});
+      const j=await r.json();
+      for(const b of j.results.bindings){const it=withId.find(x=>x.imdb===b.imdb.value);if(it)titles[it.key]=decodeURIComponent(b.a.value.split('/wiki/')[1]).replace(/_/g,' ')}
+    }
+  }catch(e){return}   // offline or blocked: keep the typographic covers
+  // 2) titles without a match: Wikipedia search
+  for(const it of need.filter(i=>!titles[i.key])){
+    try{
+      const r=await fetch(`https://en.wikipedia.org/w/api.php?action=query&list=search&srlimit=1&format=json&origin=*&srsearch=${encodeURIComponent(it.title+' '+(it.year||'')+' film')}`);
+      const j=await r.json();const hit=j.query?.search?.[0];if(hit)titles[it.key]=hit.title;
+    }catch(e){}
+  }
+  // 3) article -> lead image (the poster), 50 at a time
+  const keys=Object.keys(titles);
+  for(let i=0;i<keys.length;i+=50){
+    const batch=keys.slice(i,i+50);
+    try{
+      const r=await fetch('https://en.wikipedia.org/w/api.php?action=query&prop=pageimages&piprop=thumbnail&pithumbsize=360&pilicense=any&redirects=1&format=json&origin=*&titles='+encodeURIComponent(batch.map(k=>titles[k]).join('|')));
+      const j=await r.json();
+      const alias={};for(const x of [...(j.query?.normalized||[]),...(j.query?.redirects||[])])alias[x.from]=x.to;
+      const byTitle={};for(const p of Object.values(j.query?.pages||{}))byTitle[p.title]=p.thumbnail?.source||'';
+      for(const k of batch){let t=titles[k];while(alias[t])t=alias[t];S.posters[k]={u:byTitle[t]||'',w:t};upgradePoster(k)}
+      save();
+    }catch(e){}
+  }
+  for(const it of need)if(!(it.key in S.posters))S.posters[it.key]={u:''};
+  save();
+}
+function upgradePoster(k){
+  const u=S.posters[k]?.u;if(!u)return;
+  document.querySelectorAll(`[data-k="${CSS.escape(k)}"] .pwrap, [data-k="${CSS.escape(k)}"] .thumb`).forEach(w=>{
+    const tgt=w.querySelector('.open')||w;if(!tgt.querySelector('img'))tgt.insertAdjacentHTML('beforeend',`<img src="${esc(u)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.remove()">`);
+  });
+}
+
+/* ---------- cards ---------- */
+function cardHTML(it,opts={}){
+  const seen=isSeen(it.key),want=isWant(it.key);
+  const b=[];
+  if(opts.rank&&it.imdbRank)b.push(`<span class="bdg">#${it.imdbRank}</span>`);
+  if(it.bp?.winner)b.push(`<span class="bdg gold">BP win</span>`);
+  else if(it.bp&&!opts.noNom)b.push(`<span class="bdg nom">BP nom</span>`);
+  return `<div class="card${seen?' is-seen':''}" data-k="${esc(it.key)}">
+    <div class="pwrap"><button type="button" class="open" aria-label="${esc(it.title)} details" style="all:unset;position:absolute;inset:0;cursor:pointer">${posterHTML(it)}</button>
+      ${want?'<i class="wantflag"></i>':''}<span class="badges">${b.join('')}</span>
+      <button type="button" class="mark" aria-pressed="${seen}" aria-label="Seen ${esc(it.title)}"><span>${CHECK}</span></button></div>
+    <button type="button" class="ctitle open">${esc(it.title)}</button><span class="cyear">${esc(it.year||'')}${it.media!=='movie'?' · '+esc(MEDIA[it.media]?.label||''):''}</span></div>`;
+}
+function refreshMarks(k){
+  const seen=isSeen(k),want=isWant(k);
+  document.querySelectorAll(`[data-k="${CSS.escape(k)}"]`).forEach(el=>{
+    if(el.classList.contains('card')){
+      el.classList.toggle('is-seen',seen);
+      el.querySelector('.mark')?.setAttribute('aria-pressed',seen);
+      const pw=el.querySelector('.pwrap');let wf=pw.querySelector('.wantflag');
+      if(want&&!wf)pw.insertAdjacentHTML('beforeend','<i class="wantflag"></i>');if(!want&&wf)wf.remove();
+    }
+    el.querySelectorAll('.box').forEach(b=>b.setAttribute('aria-pressed',seen));
+    el.querySelectorAll('.pill.seen').forEach(b=>{b.setAttribute('aria-pressed',seen);b.lastChild.textContent=seen?'Seen':'Mark seen'});
+    el.querySelectorAll('.pill.want').forEach(b=>{b.setAttribute('aria-pressed',want);b.lastChild.textContent=want?'On watchlist':'Want to see'});
+  });
+  updateTally();updateCerCounts();
+}
+
+/* ---------- views ---------- */
+const VIEWS={all:'All titles',imdb:'IMDb Top 250',oscars:'Best Picture',lists:'Lists & backup'};
+function route(){
+  const v=(location.hash||'#all').slice(1);
+  S.view=VIEWS[v]?v:'all'; S.shown=90;
+  document.querySelectorAll('#tabs a').forEach(a=>{if(a.dataset.v===S.view)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')});
+  $('#viewname').textContent=VIEWS[S.view];
+  $('#searchrow').hidden=S.view==='lists'; $('#statuschips').hidden=S.view==='lists';
+  render(); window.scrollTo(0,0);
+}
+function statusChips(pool){
+  const n=st=>pool.filter(i=>st==='all'||(st==='seen'?isSeen(i.key):st==='unseen'?!isSeen(i.key):isWant(i.key))).length;
+  $('#statuschips').innerHTML=[['all','All'],['unseen','Not seen'],['seen','Seen'],['want','Want to see']]
+    .map(([k,l])=>`<button type="button" class="chip" data-st="${k}" aria-pressed="${S.f.status===k}">${l}<span class="ct">${n(k)}</span></button>`).join('');
+  const c=activeFilterCount();$('#fcount').hidden=!c;$('#fcount').textContent=c;
+}
+function tallyHTML(){
+  const L=id=>S.lists.find(l=>l.id===id);
+  const t=(l,label,gold)=>{const s=l.keys.filter(isSeen).length,n=l.keys.length;return `<div class="tile${gold?' gold':''}"><div class="k">${label}</div><div class="v" data-tally="${l.id}">${s}<small> / ${n}</small></div><div class="bar"><i style="width:${n?s/n*100:0}%"></i></div></div>`};
+  return `<div class="tally" id="tally">${t(L('imdb'),'Top 250')}${t(L('bpw'),'BP winners',1)}${t(L('bpn'),'BP nominees',1)}</div>`;
+}
+function updateTally(){
+  const el=$('#tally');if(!el)return;el.outerHTML=tallyHTML();
+  const pool=S.view==='lists'?[]:poolFor(S.view);if(S.view!=='lists')statusChips(pool);
+}
+function poolFor(v){
+  const all=Object.values(S.items);
+  if(v==='imdb')return all.filter(i=>i.imdbRank);
+  if(v==='oscars')return all.filter(i=>i.bp);
+  return all;
+}
+function render(){
+  const m=$('#main');
+  if(S.view==='lists'){m.innerHTML=listsHTML();return}
+  const pool=poolFor(S.view).filter(i=>passes(i,true));
+  statusChips(pool);
+  if(S.view==='oscars'){m.innerHTML=oscarsHTML();return}
+  const res=sorted(pool.filter(i=>passes(i)),S.view==='imdb'?'rank':'popular');
+  const head=tallyHTML()+`<div class="resinfo"><span>${res.length} ${res.length===1?'title':'titles'}${S.f.sort!=='auto'?' · '+SORTS[S.f.sort]:''}</span>${activeFilterCount()||S.f.q||S.f.status!=='all'?'<button type="button" id="clearall">Clear filters</button>':''}</div>`;
+  if(!res.length){m.innerHTML=head+`<div class="empty"><h3>Nothing here</h3><p>${S.f.status==='want'?'Tap “Want to see” on any title to build your watchlist.':'No titles match these filters.'}</p></div>`;return}
+  m.innerHTML=head+`<div class="grid">${res.slice(0,S.shown).map(i=>cardHTML(i,{rank:S.view==='imdb'||S.f.sort==='rank'})).join('')}</div>`+(res.length>S.shown?`<button type="button" class="more" id="more">Show more (${res.length-S.shown} left)</button>`:'');
+  S._res=res;
+}
+
+/* Oscars view: one block per ceremony */
+function oscarsHTML(){
+  const f=S.f;let out=tallyHTML()+`<div class="seg" role="group" aria-label="Oscar view"><button type="button" data-om="races" aria-pressed="${S.oscarMode==='races'}">Full races</button><button type="button" data-om="winners" aria-pressed="${S.oscarMode==='winners'}">Winners only</button></div>`;
+  let shown=0;
+  for(const c of S.ceremonies){
+    const noms=c.nominees.map(k=>S.items[k]).filter(Boolean);
+    const vis=noms.filter(i=>passes(i));
+    const win=S.items[c.winner];
+    if(S.oscarMode==='winners'?!(win&&passes(win)):!vis.length)continue;
+    if(shown>=S.shown*0.25&&shown>=24){out+=`<button type="button" class="more" id="more">Show earlier years</button>`;break}
+    shown++;
+    const others=vis.filter(i=>i.key!==c.winner);
+    const s=noms.filter(i=>isSeen(i.key)).length;
+    out+=`<section class="cer" data-cer="${c.ceremony}"><div class="cerhead"><h2>${c.held}</h2><span class="sub">${ord(c.ceremony)} Academy Awards · films of ${esc(c.filmYear)}</span><span class="pc${s===noms.length?' full':''}" data-cerpc="${c.ceremony}">${s}/${noms.length} seen</span></div>`;
+    if(win){out+=`<div class="winner" data-k="${esc(win.key)}"><div class="card${isSeen(win.key)?' is-seen':''}" data-k="${esc(win.key)}"><div class="pwrap"><button type="button" class="open" aria-label="${esc(win.title)} details" style="all:unset;position:absolute;inset:0;cursor:pointer">${posterHTML(win)}</button>${isWant(win.key)?'<i class="wantflag"></i>':''}<button type="button" class="mark" aria-pressed="${isSeen(win.key)}" aria-label="Seen ${esc(win.title)}"><span>${CHECK}</span></button></div></div>
+      <div class="info"><div class="eyebrow">Best Picture</div><h3><button type="button" class="open">${esc(win.title)}</button></h3><div class="meta">${esc((win.directors||[]).join(', '))}${win.imdbRank?` · IMDb #${win.imdbRank}`:''}</div>
+      <div class="wbtns"><button type="button" class="pill seen" aria-pressed="${isSeen(win.key)}">${CHECK}<span>${isSeen(win.key)?'Seen':'Mark seen'}</span></button><button type="button" class="pill want" aria-pressed="${isWant(win.key)}"><span>${isWant(win.key)?'On watchlist':'Want to see'}</span></button></div></div></div>`}
+    if(S.oscarMode==='races'&&others.length)out+=`<div class="noms">${others.map(i=>cardHTML(i,{noNom:true})).join('')}</div>`;
+    out+='</section>';
+  }
+  if(!shown)out+=`<div class="empty"><h3>Nothing here</h3><p>No Best Picture races match these filters.</p></div>`;
+  return out;
+}
+function updateCerCounts(){
+  document.querySelectorAll('[data-cerpc]').forEach(el=>{
+    const c=S.ceremonies.find(x=>x.ceremony==el.dataset.cerpc);const s=c.nominees.filter(isSeen).length;
+    el.textContent=`${s}/${c.nominees.length} seen`;el.classList.toggle('full',s===c.nominees.length);
+  });
+}
+
+/* ---------- detail sheet ---------- */
+let sheetOpen=false, sheetStack=[];
+function openSheet(html,label){
+  $('#sbody').innerHTML=html;$('#sheettitle').textContent=label||'';
+  const sh=$('#sheet'),sc=$('#scrim');sh.hidden=false;sc.hidden=false;
+  requestAnimationFrame(()=>{sh.classList.add('on');sc.classList.add('on')});
+  $('#sbody').scrollTop=0;
+  if(!sheetOpen){sheetOpen=true;try{history.pushState({sheet:1},'')}catch(e){}}
+  document.body.style.overflow='hidden';
+}
+function closeSheet(fromPop){
+  if(!sheetOpen)return;sheetOpen=false;sheetStack=[];
+  const sh=$('#sheet'),sc=$('#scrim');sh.classList.remove('on');sc.classList.remove('on');
+  setTimeout(()=>{if(!sheetOpen){sh.hidden=true;sc.hidden=true}},260);
+  document.body.style.overflow='';
+  if(!fromPop){try{if(history.state?.sheet)history.back()}catch(e){}}
+}
+window.addEventListener('popstate',()=>closeSheet(true));
+function list(a){return a&&a.length?a.map(esc).join(', '):'<span style="color:var(--faint)">—</span>'}
+function detail(k){
+  const it=S.items[k];if(!it)return;
+  const seen=isSeen(k),want=isWant(k),M=MEDIA[it.media]||MEDIA.other;
+  const chips=[];
+  if(it.imdbRank)chips.push(`<span class="tag">IMDb #${it.imdbRank}</span>`);
+  if(it.imdbRating)chips.push(`<span class="tag line">★ ${it.imdbRating}</span>`);
+  if(it.bp)chips.push(`<span class="tag ${it.bp.winner?'gold':'line'}">${it.bp.winner?'Best Picture':'BP nominee'} ${S.ceremonies.find(c=>c.ceremony===it.bp.ceremony)?.held||''}</span>`);
+  if(it.oscars?.wins)chips.push(`<span class="tag line">${it.oscars.wins} Oscar${it.oscars.wins>1?'s':''}</span>`);
+  (it.genres||[]).forEach(g=>chips.push(`<span class="tag line">${esc(g)}</span>`));
+  const st=it.setting||{};
+  const setYears=st.startYear?(st.endYear&&st.endYear!==st.startYear?`${st.startYear}–${st.endYear}`:`${st.startYear}`):'';
+  const setSame=st.period&&/contemporary/i.test(st.period);
+  const settingTxt=st.period||st.place?`${esc(st.period||'')}${setYears&&!String(st.period).includes(setYears)?` (${setYears})`:''}${st.place?` · ${esc(st.place)}`:''}${setSame?' <span style="color:var(--faint)">— same era as release</span>':''}`:'—';
+  const based=it.basedOn&&it.basedOn!=='original'?`${esc(it.basedOn.replace(/^./,c=>c.toUpperCase()))}${it.source?`: <i>${esc(it.source)}</i>`:''}`:(it.basedOn==='original'?'Original story':'—');
+  let h=`<div data-k="${esc(k)}"><div class="dhead"><div class="pwrap">${posterHTML(it)}</div><div style="min-width:0">
+    <h2 class="dtitle">${esc(it.title)}</h2>
+    <div class="dsub">${esc(it.year||'')}${it.runtime?` · ${it.runtime} min`:''}${it.countries?.length?` · ${esc(it.countries.join(', '))}`:''}${it.media!=='movie'?` · ${M.label}`:''}</div>
+    <div class="dchips">${chips.join('')}</div></div></div>
+    <div class="dact"><button type="button" class="pill seen" aria-pressed="${seen}">${CHECK}<span>${seen?'Seen':'Mark seen'}</span></button><button type="button" class="pill want" aria-pressed="${want}"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M6 3h12v18l-6-4.5L6 21z"/></svg><span>${want?'On watchlist':'Want to see'}</span></button></div>
+    ${it.plot?`<p class="plot">${esc(it.plot)}</p>`:''}
+    <dl class="facts">
+      ${it.media==='movie'?`<dt>Director</dt><dd>${list(it.directors)}</dd><dt>Writers</dt><dd>${list(it.writers)}</dd><dt>Cast</dt><dd>${list(it.cast)}</dd>`:`<dt>${M.creator}</dt><dd>${esc(it.creator||'—')}</dd>`}
+      <dt>Released</dt><dd>${esc(it.year||'—')}</dd>
+      ${it.media==='movie'||it.setting?`<dt>Set in</dt><dd>${settingTxt}</dd>`:''}
+      ${it.media==='movie'?`<dt>True story</dt><dd>${it.trueStory?'<span class="yes">Yes</span>':'No'}</dd><dt>Historical</dt><dd>${it.historical?'<span class="yes">Yes, a period piece</span>':'No'}</dd><dt>Based on</dt><dd>${based}</dd>`:''}
+      ${it.languages?.length?`<dt>Language</dt><dd>${esc(it.languages.join(', '))}</dd>`:''}
+      ${it.note?`<dt>Note</dt><dd>${esc(it.note)}</dd>`:''}
+    </dl>`;
+  if(it.bp){
+    const c=S.ceremonies.find(x=>x.ceremony===it.bp.ceremony);
+    const noms=[c.winner,...c.nominees.filter(x=>x!==c.winner)].map(x=>S.items[x]).filter(Boolean);
+    h+=`<div class="sec"><h4>Best Picture race ${c.held}<small>${ord(c.ceremony)} Oscars · ${noms.filter(i=>isSeen(i.key)).length}/${noms.length} seen</small></h4><div class="race">${noms.map(i=>`<div class="rrow${i.key===k?' cur':''}" data-k="${esc(i.key)}"><div class="thumb">${posterHTML(i)}</div><button type="button" class="nm" data-go="${esc(i.key)}"><b>${esc(i.title)}</b><span>${i.key===c.winner?'<span style="color:var(--brass);font-weight:700">Winner</span>':'Nominee'}${i.directors?.length?' · '+esc(i.directors[0]):''}</span></button><button type="button" class="box" aria-pressed="${isSeen(i.key)}" aria-label="Seen ${esc(i.title)}"><span>${CHECK}</span></button></div>`).join('')}</div></div>`;
+  }
+  if(it.oscars&&(it.oscars.won.length||it.oscars.nominated.length)){
+    h+=`<div class="sec"><h4>Oscar record<small>${it.oscars.wins} won of ${it.oscars.noms} nominations</small></h4><ul class="olist">${it.oscars.won.map(x=>`<li><span class="dot" style="background:var(--brass)"></span><span>${esc(x)}</span></li>`).join('')}${it.oscars.nominated.map(x=>`<li><span class="dot" style="border:1.5px solid var(--faint)"></span><span style="color:var(--muted)">${esc(x)}</span></li>`).join('')}</ul></div>`;
+  }
+  const wiki=S.posters[k]?.w;
+  h+=`<div class="links">${it.imdb?`<a href="https://www.imdb.com/title/${esc(it.imdb)}/" target="_blank" rel="noopener">IMDb</a>`:''}<a href="https://en.wikipedia.org/wiki/${wiki?encodeURIComponent(wiki.replace(/ /g,'_')):'Special:Search?search='+encodeURIComponent(it.title+' '+(it.year||'')+(it.media==='movie'?' film':''))}" target="_blank" rel="noopener">Wikipedia</a>${it.media==='movie'?`<a href="https://www.justwatch.com/us/search?q=${encodeURIComponent(it.title)}" target="_blank" rel="noopener">Where to watch</a>`:''}</div>`;
+  if(it.confidence&&it.confidence!=='high')h+=`<p class="note">Some details for this title are less certain. Check IMDb if something looks off.</p>`;
+  if(it.custom)h+=`<div class="lbtns"><button type="button" class="btn danger" data-delitem="${esc(k)}">Remove from my lists</button></div>`;
+  h+='</div>';
+  openSheet(h,it.bp?(it.bp.winner?'Best Picture winner':'Best Picture nominee'):(it.imdbRank?'IMDb Top 250':MEDIA[it.media]?.label||''));
+}
+
+/* ---------- filter sheet ---------- */
+function filterSheet(){
+  const all=Object.values(S.items);
+  const genres=[...new Set(all.flatMap(i=>i.genres||[]))].sort();
+  const decades=[...new Set(all.map(i=>Math.floor((i.year||0)/10)*10).filter(Boolean))].sort((a,b)=>b-a);
+  const medias=[...new Set(all.map(i=>i.media))];
+  const grp=(title,key,opts)=>`<div class="fgroup"><h5>${title}</h5><div class="chips">${opts.map(([v,l])=>`<button type="button" class="chip" data-fk="${key}" data-fv="${esc(v)}" aria-pressed="${S.f[key].includes(key==='decade'?+v:v)}">${esc(l)}</button>`).join('')}</div></div>`;
+  let h='';
+  h+=`<div class="fgroup"><h5>Sort</h5><div class="chips">${Object.entries(SORTS).map(([v,l])=>`<button type="button" class="chip" data-sort="${v}" aria-pressed="${S.f.sort===v}">${l}</button>`).join('')}</div></div>`;
+  h+=grp('In list','src',S.lists.map(l=>[l.id,l.name]));
+  h+=grp('Story','flags',FLAGS.map(f=>[f[0],f[1]]));
+  h+=grp('Genre','genre',genres.map(g=>[g,g]));
+  h+=grp('Decade','decade',decades.map(d=>[d,d+'s']));
+  if(medias.length>1)h+=grp('Media','media',medias.map(m=>[m,MEDIA[m]?.plural||m]));
+  h+=`<div class="frow"><button type="button" id="freset">Reset</button><button type="button" class="go" id="fdone">Show results</button></div>`;
+  openSheet(h,'Filters & sort');
+}
+
+/* ---------- lists view ---------- */
+function listsHTML(){
+  const seenTotal=Object.keys(S.items).filter(isSeen).length,wantTotal=Object.keys(S.items).filter(isWant).length;
+  let h=tallyHTML()+`<div class="lcard"><div class="lhead"><h3>Your ledger</h3><span class="cnt">${seenTotal} seen · ${wantTotal} on watchlist</span></div><p>Marks are saved on this device. Copy a backup now and then, and paste it here to restore or move to another phone.</p>
+    <div class="lbtns"><button type="button" class="btn pri" id="bcopy">Copy backup</button><button type="button" class="btn" id="bpaste">Restore from backup</button>${window.top===window?'<button type="button" class="btn" id="bdl">Download backup file</button>':''}</div>
+    <div id="restorebox" hidden><div class="field"><label for="restoretxt">Paste backup text</label><textarea id="restoretxt" spellcheck="false"></textarea></div><div class="lbtns"><button type="button" class="btn pri" id="restorego">Restore</button></div></div></div>`;
+  h+=`<h2 class="sectitle">Lists</h2>`;
+  for(const l of S.lists){
+    const s=l.keys.filter(isSeen).length;
+    h+=`<div class="lcard"><div class="lhead"><h3>${esc(l.name)}</h3><span class="cnt">${s}/${l.keys.length} seen</span></div>
+      <p>${l.builtin?{imdb:'The IMDb Top 250 chart as of September 2026. Ranks shift a little every week.',bpw:'Every Academy Award winner for Best Picture, 1st (1929) through 98th (2026) ceremony.',bpn:'Every film nominated for Best Picture, winners included, across all 98 ceremonies.'}[l.id]:esc(MEDIA[l.media]?.plural||'')+' · your own list'}</p>
+      <div class="lbtns"><button type="button" class="btn" data-showlist="${l.id}">Show in All</button>${l.builtin?'':`<button type="button" class="btn" data-additem="${l.id}">Add a title</button><button type="button" class="btn danger" data-dellist="${l.id}">Delete list</button>`}</div>
+      <div id="addform-${l.id}" hidden></div></div>`;
+  }
+  h+=`<div class="lcard"><h3>New list</h3><p>Track series, books, games or anything else. Add titles one by one, or paste a list file.</p>
+    <div class="two"><div class="field"><label for="nl-name">Name</label><input id="nl-name" placeholder="Series to finish"></div><div class="field"><label for="nl-media">Kind</label><select id="nl-media">${Object.entries(MEDIA).map(([k,m])=>`<option value="${k}">${m.plural}</option>`).join('')}</select></div></div>
+    <div class="lbtns"><button type="button" class="btn pri" id="nl-go">Create list</button><button type="button" class="btn" id="imp-open">Paste a list file</button></div>
+    <div id="impbox" hidden><div class="field"><label for="imptxt">List file (JSON)</label><textarea id="imptxt" spellcheck="false" placeholder='{"list":{"name":"Top 100 games","media":"game"},"items":[{"title":"Hollow Knight","year":2017,"creator":"Team Cherry"}]}'></textarea></div><div class="lbtns"><button type="button" class="btn pri" id="imp-go">Import list</button></div></div></div>`;
+  h+=`<div class="lcard"><h3>Install on your phone</h3><p>Android (Chrome): open the menu ⋮ and tap <b>Add to Home screen</b> or <b>Install app</b>. iPhone (Safari): tap Share, then <b>Add to Home Screen</b>. It then opens full screen and works offline.</p></div>
+    <p class="note">Data: IMDb Top 250 snapshot (Sept 2026); Oscar nominations from the Academy's records via the open oscar_data dataset; posters from Wikipedia. Summaries are written for this app.</p>`;
+  return h;
+}
+function addItemForm(lid){
+  const l=S.lists.find(x=>x.id===lid),M=MEDIA[l.media]||MEDIA.other,box=$('#addform-'+lid);
+  box.hidden=!box.hidden;if(box.hidden)return;
+  box.innerHTML=`<div class="two"><div class="field"><label for="ai-t-${lid}">Title</label><input id="ai-t-${lid}"></div><div class="field"><label for="ai-y-${lid}">Year</label><input id="ai-y-${lid}" inputmode="numeric"></div></div>
+   <div class="field"><label for="ai-c-${lid}">${M.creator}</label><input id="ai-c-${lid}"></div><div class="field"><label for="ai-n-${lid}">Note (optional)</label><input id="ai-n-${lid}"></div>
+   <div class="lbtns"><button type="button" class="btn pri" data-addgo="${lid}">Add</button></div>`;
+}
+const uid=()=>Math.random().toString(36).slice(2,9);
+function importList(obj){
+  const L=obj.list||{};const id='u'+uid();
+  const media=MEDIA[L.media]?L.media:'other';
+  const keys=[];
+  for(const x of obj.items||[]){
+    if(!x||!x.title)continue;
+    if(media==='movie'&&x.imdb&&S.items[x.imdb]&&!S.items[x.imdb].custom){keys.push(x.imdb);continue}
+    const key='c-'+uid();S.custom.items[key]={key,media,title:String(x.title),year:x.year?+x.year:null,creator:x.creator||'',plot:x.plot||x.description||'',genres:x.genres||[],poster:x.poster||'',note:x.note||'',directors:x.directors,cast:x.cast,writers:x.writers,setting:x.setting,trueStory:x.trueStory,historical:x.historical,basedOn:x.basedOn,source:x.source,runtime:x.runtime,imdb:x.imdb};
+    keys.push(key);
+  }
+  S.custom.lists.push({id,name:L.name||'Imported list',media,keys});
+  saveCustom();mergeCustom();return keys.length;
+}
+
+/* ---------- events ---------- */
+document.addEventListener('click',e=>{
+  const t=e.target.closest('button,[data-k]');if(!t)return;
+  const host=e.target.closest('[data-k]');const k=host?.dataset.k;
+  if(e.target.closest('.mark')||e.target.closest('.box')){setMark(k,'s',!isSeen(k));if(isSeen(k))navigator.vibrate?.(12);return}
+  if(e.target.closest('.pill.seen')){setMark(k,'s',!isSeen(k));return}
+  if(e.target.closest('.pill.want')){setMark(k,'w',!isWant(k));toast(isWant(k)?'Added to watchlist':'Removed from watchlist');return}
+  const go=e.target.closest('[data-go]');if(go){detail(go.dataset.go);return}
+  if(e.target.closest('.open')){detail(k);return}
+  const st=e.target.closest('[data-st]');if(st){S.f.status=st.dataset.st;S.shown=90;render();return}
+  const om=e.target.closest('[data-om]');if(om){S.oscarMode=om.dataset.om;render();return}
+  if(t.id==='more'){S.shown+=S.view==='oscars'?96:120;const y=scrollY;render();scrollTo(0,y);return}
+  if(t.id==='clearall'){S.f={...S.f,q:'',status:'all',src:[],genre:[],decade:[],flags:[],media:[],sort:'auto'};$('#q').value='';render();return}
+  if(t.id==='fbtn'||e.target.closest('#fbtn')){filterSheet();return}
+  if(t.id==='sheetx'||e.target.closest('#sheetx')){closeSheet();return}
+  const fk=e.target.closest('[data-fk]');if(fk){const key=fk.dataset.fk,v=key==='decade'?+fk.dataset.fv:fk.dataset.fv;const a=S.f[key];const i=a.indexOf(v);i<0?a.push(v):a.splice(i,1);fk.setAttribute('aria-pressed',i<0);return}
+  const so=e.target.closest('[data-sort]');if(so){S.f.sort=so.dataset.sort;document.querySelectorAll('[data-sort]').forEach(b=>b.setAttribute('aria-pressed',b===so));return}
+  if(t.id==='freset'){S.f={...S.f,src:[],genre:[],decade:[],flags:[],media:[],sort:'auto'};filterSheet();return}
+  if(t.id==='fdone'){closeSheet();S.shown=90;render();return}
+  // lists view
+  if(t.id==='bcopy'){const txt=JSON.stringify({app:'reel-ledger',v:1,at:new Date().toISOString(),marks:S.marks,custom:S.custom});
+    (navigator.clipboard?.writeText(txt)||Promise.reject()).then(()=>toast('Backup copied. Paste it into a note or email to yourself.'),()=>{$('#restorebox').hidden=false;$('#restoretxt').value=txt;$('#restoretxt').select();toast('Select all and copy the text below')});return}
+  if(t.id==='bdl'){const blob=new Blob([JSON.stringify({app:'reel-ledger',v:1,at:new Date().toISOString(),marks:S.marks,custom:S.custom})],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='reel-ledger-backup.json';a.click();return}
+  if(t.id==='bpaste'){$('#restorebox').hidden=!$('#restorebox').hidden;return}
+  if(t.id==='restorego'){try{const o=JSON.parse($('#restoretxt').value);if(!o.marks)throw 0;S.marks={...S.marks,...o.marks};if(o.custom){for(const l of o.custom.lists||[])if(!S.custom.lists.some(x=>x.id===l.id))S.custom.lists.push(l);Object.assign(S.custom.items,o.custom.items||{})}saveMarks();saveCustom();mergeCustom();render();toast('Backup restored')}catch(err){toast('That text is not a Reel Ledger backup')}return}
+  if(t.id==='nl-go'){const n=$('#nl-name').value.trim();if(!n){toast('Give the list a name first');return}S.custom.lists.push({id:'u'+uid(),name:n,media:$('#nl-media').value,keys:[]});saveCustom();mergeCustom();render();toast('List created. Tap “Add a title” on it.');return}
+  if(t.id==='imp-open'){$('#impbox').hidden=!$('#impbox').hidden;return}
+  if(t.id==='imp-go'){try{const n=importList(JSON.parse($('#imptxt').value));render();toast(`Imported ${n} titles`)}catch(err){toast('Could not read that list. Check the JSON format.')}return}
+  const sl=e.target.closest('[data-showlist]');if(sl){S.f={...S.f,q:'',status:'all',src:[sl.dataset.showlist],genre:[],decade:[],flags:[],media:[],sort:'auto'};location.hash='#all';return}
+  const ai=e.target.closest('[data-additem]');if(ai){addItemForm(ai.dataset.additem);return}
+  const ag=e.target.closest('[data-addgo]');if(ag){const lid=ag.dataset.addgo,l=S.custom.lists.find(x=>x.id===lid);const title=$('#ai-t-'+lid).value.trim();if(!title){toast('Add a title first');return}
+    const key='c-'+uid();S.custom.items[key]={key,media:l.media,title,year:+$('#ai-y-'+lid).value||null,creator:$('#ai-c-'+lid).value.trim(),note:$('#ai-n-'+lid).value.trim()};l.keys.push(key);saveCustom();mergeCustom();render();toast(`Added “${title}”`);return}
+  const dl=e.target.closest('[data-dellist]');if(dl){const lid=dl.dataset.dellist;if(dl.dataset.armed){const l=S.custom.lists.find(x=>x.id===lid);for(const k of l.keys)if(S.custom.items[k]&&!S.custom.lists.some(o=>o!==l&&o.keys.includes(k)))delete S.custom.items[k];S.custom.lists=S.custom.lists.filter(x=>x.id!==lid);saveCustom();mergeCustom();render();toast('List deleted')}else{dl.dataset.armed=1;dl.textContent='Tap again to delete';setTimeout(()=>{if(dl.isConnected){delete dl.dataset.armed;dl.textContent='Delete list'}},3000)}return}
+  const di=e.target.closest('[data-delitem]');if(di){const k2=di.dataset.delitem;delete S.custom.items[k2];S.custom.lists.forEach(l=>l.keys=l.keys.filter(x=>x!==k2));saveCustom();mergeCustom();closeSheet();render();return}
+});
+$('#scrim').addEventListener('click',()=>closeSheet());
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSheet()});
+let qT;$('#q').addEventListener('input',e=>{clearTimeout(qT);qT=setTimeout(()=>{S.f.q=e.target.value.trim();S.shown=90;render()},160)});
+window.addEventListener('hashchange',route);
+// infinite-ish scroll on the grid
+window.addEventListener('scroll',()=>{if(S.view!=='all'&&S.view!=='imdb')return;const m=$('#more');if(m&&m.getBoundingClientRect().top<innerHeight+600){S.shown+=120;const y=scrollY;render();scrollTo(0,y)}},{passive:true});
+if('serviceWorker' in navigator&&window.top===window&&location.protocol==='https:'){try{navigator.serviceWorker.register('sw.js').catch(()=>{})}catch(e){}}
+load();
+})();
+</script>
+
+</body>
+</html>
