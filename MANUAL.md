@@ -7,13 +7,14 @@ Reel Ledger is a phone app for ticking off films you've seen. It ships with two 
 
 There are 778 titles in total (93 films are on both lists). You can add your own lists of series, books, games or anything else.
 
-## The four tabs
+## The five tabs
 
 | Tab | What it shows |
 |---|---|
 | **All** | Every title in one poster grid. Your progress on the three built-in lists sits at the top. |
 | **Top 250** | The IMDb chart in rank order. Each poster shows its rank. |
 | **Oscars** | One block per ceremony, newest first: the winner large, the other nominees in a row you swipe sideways. "Winners only" hides the nominees. Each block shows how many of that year's race you've seen (e.g. 6/10). |
+| **For you** | Recommendations gathered from every film you've marked seen, ranked by hits. See below. |
 | **Lists** | Your lists, new lists, backups, and install help. |
 
 ## Marking films
@@ -43,9 +44,26 @@ Each film shows:
 - Runtime, country, language, IMDb rank and rating
 - **Oscar record**: every Oscar it won (gold dot) and every nomination it lost (hollow dot)
 - For any Best Picture nominee: **the full Best Picture race of that year**, winner first, each with its own checkbox. Tap a name to jump to that film; tap its box to mark it without leaving.
+- **More like this**: six similar films with a one-line reason each. Some are on your lists, others aren't (marked **Off list**). Tap one to open it; the **‹** button at the top of the card takes you back.
 - Links to IMDb, Wikipedia, and JustWatch (where to stream it)
 
 Tap outside it, tap ✕, or press your phone's Back button to close it.
+
+## People
+
+Every director, writer and cast name on a detail card can be tapped. It opens that person's **filmography in the app**: every film they directed, wrote or acted in across your lists and the recommended picks, oldest first, with how many you've seen. The small gold number next to a name tells you how many titles they have in the app. All filters still work on top (for example *Not seen* to see which of a director's films you're missing). Tap ✕ on the person card to go back to everything.
+
+## Off-list films
+
+Recommendations include about 1,400 films that aren't on the IMDb Top 250 or Best Picture lists. Their card shows the director, genres, and which of your films recommended them and why. You can mark them seen or want to see like any other film; once marked they also appear in **All**. To browse them all, use Filters → In list → **Recommended picks**.
+
+## For you
+
+The **For you** tab looks at every film you've marked seen, collects their *More like this* picks, and ranks them by **hits**: how many of your seen films recommend each one. A film with *4 hits* is recommended by four films you've watched, so it's the safest bet.
+
+- It shows films you haven't seen yet. The **Seen** chip shows the ones you'd already watched, and **Want to see** shows the ones on your watchlist.
+- Mark a suggestion seen and it leaves the list next time you open the tab. Its own recommendations join in, so the list keeps learning from what you watch.
+- Filters and search work here too: e.g. *Not in English* + *2000s*, or *Recommended picks* to see only discoveries outside your lists.
 
 ## Search, status and filters
 
@@ -121,4 +139,5 @@ Posters download from Wikipedia the first time you open the app with internet, t
 - **IMDb Top 250**: chart snapshot from September 2026. The live chart moves a few places every week.
 - **Oscar nominations and wins**: the Academy's records, via the open `oscar_data` dataset on GitHub, current through the 98th Academy Awards. Director names were cross-checked against the Academy's Best Director nominations; none conflicted.
 - **Plot, cast, writers, setting, true story and historical flags**: written for this app from general film knowledge. They're right for the vast majority of titles; 56 titles (mostly 1930s nominees and 2025–26 releases) carry a note on their card saying the details are less certain. If something looks off, the IMDb link is one tap away.
+- **Recommendations**: six hand-picked similar films per title, chosen for this app from general film knowledge (not an algorithm on viewing data). Off-list picks link to an IMDb search rather than a specific page.
 - **Posters**: the lead image of each film's English Wikipedia article.
