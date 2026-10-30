@@ -50,10 +50,24 @@ button{cursor:pointer}
 /* header */
 .top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
 .top .wrap{padding-block:10px 8px;display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
-.brandrow{display:flex;align-items:baseline;gap:10px;min-width:0}
+.brandrow{display:flex;align-items:center;gap:10px;min-width:0}
 .brand{font-family:var(--display);font-weight:800;font-size:26px;letter-spacing:.02em;text-transform:uppercase;line-height:1;margin:0}
 .brand b{color:var(--brass);font-weight:800}
 .viewname{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-left:auto;white-space:nowrap}
+.locked .viewname{color:var(--brass)}
+/* lock: tap to lock, press and hold to unlock */
+.lockbtn{flex:none;position:relative;width:38px;height:38px;border-radius:19px;border:1px solid var(--line);background:var(--panel);color:var(--muted);display:grid;place-items:center;padding:0;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.lockbtn[aria-pressed="true"]{background:var(--brass);border-color:var(--brass);color:var(--brass-ink)}
+.lockbtn::after{content:"";position:absolute;inset:-5px;border-radius:50%;background:conic-gradient(var(--seen) calc(var(--p,0) * 360deg),transparent 0);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 3px));mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 3px));opacity:0;pointer-events:none}
+.lockbtn.holding::after{opacity:1}
+.locked .card:not(.is-seen) .mark{display:none}
+.locked .box{cursor:default}
+.locked .box:not([aria-pressed="true"]) span{opacity:.3}
+.locked .pill{opacity:.55}
+.locked .pill[aria-pressed="true"]{opacity:1}
+.locked :is(#bpaste,#nl-go,#imp-open,#imp-go,[data-additem],[data-addgo],[data-dellist],[data-delitem]){opacity:.4}
+.lockednote{display:flex;gap:8px;align-items:center;margin:12px 0 0;padding:10px 12px;border-radius:10px;background:var(--panel);border:1px solid var(--brass);font-size:13px}
+.lockednote svg{flex:none;color:var(--brass)}
 .searchrow{display:flex;gap:8px}
 .search{flex:1;min-width:0;display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:0 10px;height:40px}
 .search input{flex:1;min-width:0;border:0;background:transparent;outline:none;font-size:15px}
@@ -227,7 +241,7 @@ main{padding-bottom:calc(var(--tabh) + env(safe-area-inset-bottom,0px) + 24px)}
 <body>
 <header class="top" id="top">
   <div class="wrap">
-    <div class="brandrow"><h1 class="brand">Reel <b>Ledger</b></h1><span class="viewname" id="viewname">All titles</span></div>
+    <div class="brandrow"><h1 class="brand">Reel <b>Ledger</b></h1><span class="viewname" id="viewname">All titles</span><button type="button" class="lockbtn" id="lockbtn" aria-pressed="false" aria-label="Lock marks"></button></div>
     <div class="searchrow" id="searchrow">
       <label class="search"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="q" type="search" placeholder="Title, director, actor…" autocomplete="off" aria-label="Search"></label>
       <button class="fbtn" id="fbtn" type="button" aria-label="Filters and sort"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg>Filters<span class="n" id="fcount" hidden>0</span></button>
@@ -259,6 +273,8 @@ main{padding-bottom:calc(var(--tabh) + env(safe-area-inset-bottom,0px) + 24px)}
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const CHECK='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>';
+const LOCK_ICON='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="10.5" width="15" height="10" rx="2.2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></svg>';
+const UNLOCK_ICON='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="10.5" width="15" height="10" rx="2.2"/><path d="M8 10.5V7.5a4 4 0 0 1 7.6-1.7"/></svg>';
 const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 const ord=n=>n+(['th','st','nd','rd'][(n%100-20)%10]||['th','st','nd','rd'][n%100]||'th');
 const hue=s=>{let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))%360;return h};
@@ -282,7 +298,8 @@ const S={
   posters:store.get('rl.posters',{}),        // key -> {u:url,w:wikiTitle} or {u:''}
   view:'all', shown:90,
   f:{q:'',status:'all',src:[],genre:[],decade:[],flags:[],media:[],sort:'auto'},
-  oscarMode:'races'
+  oscarMode:'races',
+  locked:!!store.get('rl.locked',0)
 };
 const saveMarks=()=>store.set('rl.marks',S.marks);
 const saveCustom=()=>store.set('rl.custom',S.custom);
@@ -456,7 +473,7 @@ function route(){
   const v=(location.hash||'#all').slice(1);
   S.view=VIEWS[v]?v:'all'; S.shown=90;
   document.querySelectorAll('#tabs a').forEach(a=>{if(a.dataset.v===S.view)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')});
-  $('#viewname').textContent=VIEWS[S.view];
+  $('#viewname').textContent=S.locked?'View only':VIEWS[S.view];
   $('#searchrow').hidden=S.view==='lists'; $('#statuschips').hidden=S.view==='lists';
   render(); window.scrollTo(0,0);
 }
@@ -608,7 +625,7 @@ function filterSheet(){
 /* ---------- lists view ---------- */
 function listsHTML(){
   const seenTotal=Object.keys(S.items).filter(isSeen).length,wantTotal=Object.keys(S.items).filter(isWant).length;
-  let h=tallyHTML()+`<div class="lcard"><div class="lhead"><h3>Your ledger</h3><span class="cnt">${seenTotal} seen · ${wantTotal} on watchlist</span></div><p>Marks are saved on this device. Copy a backup now and then, and paste it here to restore or move to another phone.</p>
+  let h=tallyHTML()+(S.locked?`<p class="lockednote">${LOCK_ICON}<span>View only. Marks and lists can't be changed until you press and hold the lock.</span></p>`:'')+`<div class="lcard"><div class="lhead"><h3>Your ledger</h3><span class="cnt">${seenTotal} seen · ${wantTotal} on watchlist</span></div><p>Marks are saved on this device. Copy a backup now and then, and paste it here to restore or move to another phone.</p>
     <div class="lbtns"><button type="button" class="btn pri" id="bcopy">Copy backup</button><button type="button" class="btn" id="bpaste">Restore from backup</button>${window.top===window?'<button type="button" class="btn" id="bdl">Download backup file</button>':''}</div>
     <div id="restorebox" hidden><div class="field"><label for="restoretxt">Paste backup text</label><textarea id="restoretxt" spellcheck="false"></textarea></div><div class="lbtns"><button type="button" class="btn pri" id="restorego">Restore</button></div></div></div>`;
   h+=`<h2 class="sectitle">Lists</h2>`;
@@ -653,6 +670,10 @@ function importList(obj){
 document.addEventListener('click',e=>{
   const t=e.target.closest('button,[data-k]');if(!t)return;
   const host=e.target.closest('[data-k]');const k=host?.dataset.k;
+  if(S.locked){
+    const edit=e.target.closest('.mark,.box,.pill,#bpaste,#restorego,#nl-go,#imp-open,#imp-go,[data-additem],[data-addgo],[data-dellist],[data-delitem]');
+    if(edit){ if(edit.classList.contains('mark')){detail(k);return} toast('View only. Press and hold the lock to make changes.');return }
+  }
   if(e.target.closest('.mark')||e.target.closest('.box')){setMark(k,'s',!isSeen(k));if(isSeen(k))navigator.vibrate?.(12);return}
   if(e.target.closest('.pill.seen')){setMark(k,'s',!isSeen(k));return}
   if(e.target.closest('.pill.want')){setMark(k,'w',!isWant(k));toast(isWant(k)?'Added to watchlist':'Removed from watchlist');return}
@@ -684,6 +705,33 @@ document.addEventListener('click',e=>{
   const dl=e.target.closest('[data-dellist]');if(dl){const lid=dl.dataset.dellist;if(dl.dataset.armed){const l=S.custom.lists.find(x=>x.id===lid);for(const k of l.keys)if(S.custom.items[k]&&!S.custom.lists.some(o=>o!==l&&o.keys.includes(k)))delete S.custom.items[k];S.custom.lists=S.custom.lists.filter(x=>x.id!==lid);saveCustom();mergeCustom();render();toast('List deleted')}else{dl.dataset.armed=1;dl.textContent='Tap again to delete';setTimeout(()=>{if(dl.isConnected){delete dl.dataset.armed;dl.textContent='Delete list'}},3000)}return}
   const di=e.target.closest('[data-delitem]');if(di){const k2=di.dataset.delitem;delete S.custom.items[k2];S.custom.lists.forEach(l=>l.keys=l.keys.filter(x=>x!==k2));saveCustom();mergeCustom();closeSheet();render();return}
 });
+/* ---------- lock ---------- */
+function applyLock(){
+  document.documentElement.classList.toggle('locked',S.locked);
+  const b=$('#lockbtn');b.setAttribute('aria-pressed',S.locked);
+  b.setAttribute('aria-label',S.locked?'Locked, view only. Press and hold to unlock':'Lock marks (view only)');
+  b.innerHTML=S.locked?LOCK_ICON:UNLOCK_ICON;
+  $('#viewname').textContent=S.locked?'View only':VIEWS[S.view];
+  if(S.view==='lists'&&S.cat)render();
+}
+function setLocked(v,msg){S.locked=v;store.set('rl.locked',v?1:0);applyLock();toast(msg)}
+(()=>{
+  const b=$('#lockbtn'),HOLD=900;let raf=null,t0=0;
+  const stop=()=>{cancelAnimationFrame(raf);raf=null;b.classList.remove('holding');b.style.setProperty('--p',0)};
+  b.addEventListener('pointerdown',e=>{
+    if(e.button>0)return;
+    if(!S.locked){setLocked(true,'Locked. View only: nothing can be marked.');return}
+    t0=performance.now();b.classList.add('holding');try{b.setPointerCapture(e.pointerId)}catch(_){}
+    const step=now=>{const p=Math.min(1,(now-t0)/HOLD);b.style.setProperty('--p',p);
+      if(p>=1){stop();navigator.vibrate?.(20);setLocked(false,'Unlocked. You can mark films again.');return}
+      raf=requestAnimationFrame(step)};
+    raf=requestAnimationFrame(step);
+  });
+  ['pointerup','pointercancel'].forEach(ev=>b.addEventListener(ev,()=>{if(raf){stop();toast('Keep holding the lock to unlock')}}));
+  b.addEventListener('contextmenu',e=>e.preventDefault());
+  b.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();S.locked?setLocked(false,'Unlocked. You can mark films again.'):setLocked(true,'Locked. View only: nothing can be marked.')}});
+})();
+applyLock();
 $('#scrim').addEventListener('click',()=>closeSheet());
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSheet()});
 let qT;$('#q').addEventListener('input',e=>{clearTimeout(qT);qT=setTimeout(()=>{S.f.q=e.target.value.trim();S.shown=90;render()},160)});

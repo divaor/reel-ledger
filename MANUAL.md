@@ -23,6 +23,16 @@ There are 778 titles in total (93 films are on both lists). You can add your own
 - In the detail card, **Mark seen** and **Want to see** are the two big buttons. "Want to see" puts an orange bookmark on the poster and adds the film to your watchlist.
 - Marking a film seen removes it from the watchlist automatically.
 
+## View-only lock
+
+Hand your phone to someone, or just browse, without changing anything:
+
+- **Tap the lock** (top right) to switch to view only. It turns gold and the header says *View only*.
+- While locked, unseen posters have no checkbox, so tapping anywhere on a poster opens its details. Seen films keep their green check.
+- Mark seen, Want to see, the Best Picture race checkboxes, restoring a backup and editing lists are all blocked. Search, filters, sorting and details work as usual.
+- **To unlock, press and hold the lock for about a second** until the green ring closes. A quick tap won't unlock it.
+- The lock stays on after you close the app.
+
 ## The detail card
 
 Each film shows:
