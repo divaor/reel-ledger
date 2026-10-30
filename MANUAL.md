@@ -55,7 +55,7 @@ Every director, writer and cast name on a detail card can be tapped. It opens th
 
 ## Off-list films
 
-Recommendations include about 1,400 films that aren't on the IMDb Top 250 or Best Picture lists. Their card shows the director, genres, and which of your films recommended them and why. You can mark them seen or want to see like any other film; once marked they also appear in **All**. To browse them all, use Filters → In list → **Recommended picks**.
+Recommendations include 1,441 films that aren't on the IMDb Top 250 or Best Picture lists. They get the same full detail card as every other film (plot, director, writers, cast, setting, true story, historical, based on), plus a **Recommended from** list showing which of your films pointed to them and why. The 703 that won or were nominated for Oscars in any category also show their Oscar record and link straight to their IMDb page; the rest open an IMDb search. You can mark them seen or want to see like any other film; once marked they also appear in **All**. To browse them all, use Filters → In list → **Recommended picks**.
 
 ## For you
 
@@ -139,5 +139,5 @@ Posters download from Wikipedia the first time you open the app with internet, t
 - **IMDb Top 250**: chart snapshot from September 2026. The live chart moves a few places every week.
 - **Oscar nominations and wins**: the Academy's records, via the open `oscar_data` dataset on GitHub, current through the 98th Academy Awards. Director names were cross-checked against the Academy's Best Director nominations; none conflicted.
 - **Plot, cast, writers, setting, true story and historical flags**: written for this app from general film knowledge. They're right for the vast majority of titles; 56 titles (mostly 1930s nominees and 2025–26 releases) carry a note on their card saying the details are less certain. If something looks off, the IMDb link is one tap away.
-- **Recommendations**: six hand-picked similar films per title, chosen for this app from general film knowledge (not an algorithm on viewing data). Off-list picks link to an IMDb search rather than a specific page.
+- **Recommendations**: six hand-picked similar films per title, chosen for this app from general film knowledge (not an algorithm on viewing data). Off-list films' details were written the same way; their Oscar records and IMDb links come from the Academy's data where the film was nominated.
 - **Posters**: the lead image of each film's English Wikipedia article.

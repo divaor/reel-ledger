@@ -343,6 +343,13 @@ async function load(){
   loadRecs();
   setTimeout(()=>posterFetcher(),600);
 }
+async function loadExtras(){
+  let d;try{const r=await fetch('data/extras.json',{cache:'no-cache'});d=await r.json()}catch(e){return}
+  for(const [k,v] of Object.entries(d))if(S.items[k])Object.assign(S.items[k],v);
+  mergeCustom();
+  if(S.f.person||S.f.q){const y=scrollY;render();scrollTo(0,y)}
+  if(sheetOpen&&S._cur&&S.items[S._cur]?.extra&&!sheetStack.length){const sy=$('#sbody').scrollTop;detail(S._cur,true);$('#sbody').scrollTop=sy}
+}
 async function loadRecs(){
   let d;try{const r=await fetch('data/recs.json',{cache:'no-cache'});d=await r.json()}catch(e){return}
   S.recs=d.r||{};
@@ -350,6 +357,7 @@ async function loadRecs(){
   S.recBy={};
   for(const [src,arr] of Object.entries(S.recs))for(const [t,why] of arr)(S.recBy[t]=S.recBy[t]||[]).push([src,why]);
   mergeCustom();
+  loadExtras();
   if(S.view==='lists'||S.view==='foryou'||S.f.person||S.f.q||Object.keys(S.marks).some(k=>S.items[k]?.extra)){const y=scrollY;render();scrollTo(0,y)}
 }
 function countPeople(){
@@ -691,12 +699,18 @@ function computedRecs(it){
   }
   return out.sort((a,b)=>b.s-a.s||(b.it.imdbVotes||0)-(a.it.imdbVotes||0)).slice(0,6);
 }
+function computedKeys(it){return it.extra?(S.recBy[it.key]||[]).map(b=>b[0]):[]}
 function recsSection(it){
   const cur=S.recs?.[it.key];
   const list=cur&&cur.length?cur.map(([k,why])=>({it:S.items[k],why})).filter(x=>x.it):computedRecs(it);
   if(!list.length)return '';
   const off=list.filter(x=>x.it.extra).length;
   return `<div class="sec"><h4>More like this<small>${cur?`${list.length} picks${off?` · ${off} not on your lists`:''}`:'Similar on your lists'}</small></h4><div class="noms recs">${list.map(x=>cardHTML(x.it,{noNom:true,why:x.why})).join('')}</div></div>`;
+}
+function recFromHTML(it){
+  const by=(S.recBy[it.key]||[]).filter(([s])=>S.items[s]);
+  if(!by.length)return '';
+  return `<div class="sec"><h4>Recommended from<small>${by.length} film${by.length>1?'s':''} on your lists</small></h4><div class="race">${by.map(([s,why])=>{const o=S.items[s];return `<div class="rrow rr2" data-k="${esc(s)}"><div class="thumb">${posterHTML(o)}</div><button type="button" class="nm" data-go="${esc(s)}"><b>${esc(o.title)} <span style="font-weight:400;color:var(--faint)">${esc(o.year||'')}</span></b><span>${esc(why)}</span></button></div>`}).join('')}</div></div>`;
 }
 function extraDetail(it){
   const k=it.key,seen=isSeen(k),want=isWant(k);
@@ -718,9 +732,10 @@ function detail(k,back){
   const it=S.items[k];if(!it)return;
   if(!back&&sheetOpen&&S._cur&&S._cur!==k)sheetStack.push(S._cur);
   S._cur=k;
-  if(it.extra){extraDetail(it);return}
+  if(it.extra&&!it.plot){extraDetail(it);return}
   const seen=isSeen(k),want=isWant(k),M=MEDIA[it.media]||MEDIA.other;
   const chips=[];
+  if(it.extra)chips.push(`<span class="tag" style="background:var(--seen);color:var(--seen-ink)">Not on your lists</span>`);
   if(it.imdbRank)chips.push(`<span class="tag">IMDb #${it.imdbRank}</span>`);
   if(it.imdbRating)chips.push(`<span class="tag line">★ ${it.imdbRating}</span>`);
   if(it.bp)chips.push(`<span class="tag ${it.bp.winner?'gold':'line'}">${it.bp.winner?'Best Picture':'BP nominee'} ${S.ceremonies.find(c=>c.ceremony===it.bp.ceremony)?.held||''}</span>`);
@@ -750,17 +765,19 @@ function detail(k,back){
     const noms=[c.winner,...c.nominees.filter(x=>x!==c.winner)].map(x=>S.items[x]).filter(Boolean);
     h+=`<div class="sec"><h4>Best Picture race ${c.held}<small>${ord(c.ceremony)} Oscars · ${noms.filter(i=>isSeen(i.key)).length}/${noms.length} seen</small></h4><div class="race">${noms.map(i=>`<div class="rrow${i.key===k?' cur':''}" data-k="${esc(i.key)}"><div class="thumb">${posterHTML(i)}</div><button type="button" class="nm" data-go="${esc(i.key)}"><b>${esc(i.title)}</b><span>${i.key===c.winner?'<span style="color:var(--brass);font-weight:700">Winner</span>':'Nominee'}${i.directors?.length?' · '+esc(i.directors[0]):''}</span></button><button type="button" class="box" aria-pressed="${isSeen(i.key)}" aria-label="Seen ${esc(i.title)}"><span>${CHECK}</span></button></div>`).join('')}</div></div>`;
   }
+  if(it.extra)h+=recFromHTML(it);
   h+=recsSection(it);
   if(it.oscars&&(it.oscars.won.length||it.oscars.nominated.length)){
     h+=`<div class="sec"><h4>Oscar record<small>${it.oscars.wins} won of ${it.oscars.noms} nominations</small></h4><ul class="olist">${it.oscars.won.map(x=>`<li><span class="dot" style="background:var(--brass)"></span><span>${esc(x)}</span></li>`).join('')}${it.oscars.nominated.map(x=>`<li><span class="dot" style="border:1.5px solid var(--faint)"></span><span style="color:var(--muted)">${esc(x)}</span></li>`).join('')}</ul></div>`;
   }
   const wiki=S.posters[k]?.w;
-  h+=`<div class="links">${it.imdb?`<a href="https://www.imdb.com/title/${esc(it.imdb)}/" target="_blank" rel="noopener">IMDb</a>`:''}<a href="https://en.wikipedia.org/wiki/${wiki?encodeURIComponent(wiki.replace(/ /g,'_')):'Special:Search?search='+encodeURIComponent(it.title+' '+(it.year||'')+(it.media==='movie'?' film':''))}" target="_blank" rel="noopener">Wikipedia</a>${it.media==='movie'?`<a href="https://www.justwatch.com/us/search?q=${encodeURIComponent(it.title)}" target="_blank" rel="noopener">Where to watch</a>`:''}</div>`;
+  h+=`<div class="links">${it.imdb?`<a href="https://www.imdb.com/title/${esc(it.imdb)}/" target="_blank" rel="noopener">IMDb</a>`:it.extra?`<a href="https://www.imdb.com/find/?q=${encodeURIComponent(it.title+' '+(it.year||''))}" target="_blank" rel="noopener">IMDb</a>`:''}<a href="https://en.wikipedia.org/wiki/${wiki?encodeURIComponent(wiki.replace(/ /g,'_')):'Special:Search?search='+encodeURIComponent(it.title+' '+(it.year||'')+(it.media==='movie'?' film':''))}" target="_blank" rel="noopener">Wikipedia</a>${it.media==='movie'?`<a href="https://www.justwatch.com/us/search?q=${encodeURIComponent(it.title)}" target="_blank" rel="noopener">Where to watch</a>`:''}</div>`;
   if(it.confidence&&it.confidence!=='high')h+=`<p class="note">Some details for this title are less certain. Check IMDb if something looks off.</p>`;
+  if(it.extra)h+=`<p class="note">This film isn't on the IMDb Top 250 or Best Picture lists. Mark it seen or want to see and it stays in your All tab.</p>`;
   if(it.custom)h+=`<div class="lbtns"><button type="button" class="btn danger" data-delitem="${esc(k)}">Remove from my lists</button></div>`;
   h+='</div>';
-  openSheet(h,it.bp?(it.bp.winner?'Best Picture winner':'Best Picture nominee'):(it.imdbRank?'IMDb Top 250':MEDIA[it.media]?.label||''));
-  lazyPosters((S.recs?.[k]||[]).map(r=>r[0]).filter(x=>S.items[x]?.extra));
+  openSheet(h,it.extra?'Recommended pick':it.bp?(it.bp.winner?'Best Picture winner':'Best Picture nominee'):(it.imdbRank?'IMDb Top 250':MEDIA[it.media]?.label||''));
+  lazyPosters([...(it.extra?[k]:[]),...(S.recs?.[k]||[]).map(r=>r[0]),...computedKeys(it)].filter(x=>S.items[x]?.extra));
 }
 
 /* ---------- filter sheet ---------- */
