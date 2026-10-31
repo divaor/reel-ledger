@@ -173,7 +173,7 @@ Reel Ledger is a web app you install from the browser. It needs to be hosted at 
 
 **Preview without hosting:** a copy also runs as a page inside Claude (link on the tracker item). It works the same, but it can't be installed, shows title cards instead of posters, and keeps its own marks. Use Copy backup / Restore to move marks to the installed app.
 
-Posters download from Wikipedia the first time you open the app with internet, then stay cached for offline use. Titles without a poster show a colored title card instead.
+Posters download the first time you open the app with internet, then stay cached for offline use. Film posters come from Wikipedia. TV posters come from TVmaze, which allows about 20 lookups every 10 seconds, so the first time you open TV the posters on screen load first and the rest (about 1,800 shows) fill in over several minutes in the background. Titles without a poster show a colored title card; where only a wide logo exists it's centered on a light card.
 
 ## Updating the data later
 
@@ -188,4 +188,4 @@ Posters download from Wikipedia the first time you open the app with internet, t
 - **Oscar nominations and wins**: the Academy's records, via the open `oscar_data` dataset on GitHub, current through the 98th Academy Awards. Director names were cross-checked against the Academy's Best Director nominations; none conflicted.
 - **Plot, cast, writers, setting, true story and historical flags**: written for this app from general film knowledge. They're right for the vast majority of titles; 56 titles (mostly 1930s nominees and 2025–26 releases) carry a note on their card saying the details are less certain. If something looks off, the IMDb link is one tap away.
 - **Recommendations**: six hand-picked similar films per title, chosen for this app from general film knowledge (not an algorithm on viewing data). Off-list films' details were written the same way; their Oscar records and IMDb links come from the Academy's data where the film was nominated.
-- **Posters**: the lead image of each film's English Wikipedia article.
+- **Posters**: films use the lead image of their English Wikipedia article. TV shows use posters from [TVmaze](https://www.tvmaze.com) (data licensed CC BY-SA; each show's card links to its TVmaze page), with Wikipedia as a backup.

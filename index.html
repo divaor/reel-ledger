@@ -121,6 +121,7 @@ main{padding-bottom:calc(var(--tabh) + env(safe-area-inset-bottom,0px) + 24px)}
 .pwrap{position:relative;display:block;width:100%;container-type:inline-size;aspect-ratio:2/3;border-radius:8px;overflow:hidden;background:var(--raise);border:0;padding:0}
 .pwrap img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none}
 .pwrap .fallback{pointer-events:none}
+.pwrap img.logo,.thumb img.logo{object-fit:contain;padding:16% 9%;background:#f1eee8}
 .mark,.badges,.wantflag{z-index:2}
 .card.is-seen .pwrap img,.card.is-seen .fallback{filter:saturate(.55) brightness(.75)}
 .fallback{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;padding:8px 8px 30px;text-align:left;color:#f4f1ea;background:linear-gradient(160deg,hsl(var(--h) 38% 30%),hsl(calc(var(--h) + 40) 45% 13%))}
@@ -489,9 +490,45 @@ function posterHTML(it,cls=''){
   const p=it.poster||S.posters[it.key]?.u;
   const lw=Math.max(...String(it.title).split(/\s+/).map(w=>w.length));
   const fb=`<span class="fallback" lang="en" style="--h:${hue(it.title)};--fs:${lw>11?11:lw>9?12.5:lw>7?14:15}"><span class="ft">${esc(it.title)}</span><span class="fy">${esc(it.year||'')}</span></span>`;
-  return fb+(p?`<img src="${esc(p)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.remove()">`:'');
+  return fb+(p?`<img src="${esc(p)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onload="rlFit(this)" onerror="this.remove()">`:'');
 }
 const save=()=>store.set('rl.posters',S.posters);
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+// wide images (logos, title cards) are centered on a light card instead of cropped
+window.rlFit=img=>{const r=img.naturalWidth/(img.naturalHeight||1);img.classList.toggle('logo',r>0.9)};
+// TV posters: TVmaze first (real portrait posters), Wikipedia as the backup. TVmaze allows ~20 calls / 10 s.
+const TVQ=[],tvSeen=new Set();let tvBusy=false;
+function tvEnqueue(keys,front){
+  keys=keys.filter(k=>{const it=S.items[k];return it&&it.media==='series'&&!it.custom&&!S.posters[k]?.tm&&!tvSeen.has(k)});
+  if(!keys.length)return;
+  keys.forEach(k=>tvSeen.add(k));
+  if(front)TVQ.unshift(...keys);else TVQ.push(...keys);
+  if(!tvBusy)tvPump();
+}
+async function tvPump(){
+  tvBusy=true;const miss=[];
+  try{
+    while(TVQ.length){
+      const k=TVQ.shift(),it=S.items[k];let show=null,gone=false;
+      for(let a=0;a<4;a++){
+        try{
+          const r=await fetch(it.imdb?`https://api.tvmaze.com/lookup/shows?imdb=${it.imdb}`:`https://api.tvmaze.com/singlesearch/shows?q=${encodeURIComponent(it.title)}`);
+          if(r.status===429){await sleep(3000*(a+1));continue}
+          if(r.ok){const j=await r.json();const y=+String(j.premiered||'').slice(0,4);if(it.imdb||!it.year||!y||Math.abs(y-it.year)<=2)show=j}
+        }catch(e){gone=true}
+        break;
+      }
+      if(gone){tvSeen.delete(k);break}          // offline: stop, retry next time
+      const prev=S.posters[k]||{};
+      if(show?.image?.medium){S.posters[k]={...prev,u:show.image.medium,tm:1,i:show.id};upgradePoster(k)}
+      else{S.posters[k]={u:'',...prev,tm:1,...(show?{i:show.id}:{})};if(!prev.u)miss.push(k)}
+      save();
+      const onScreen=miss.some(x=>document.querySelector(`[data-k="${CSS.escape(x)}"]`));
+      if(miss.length>=12||(miss.length&&onScreen))lazyPosters(miss.splice(0),true);
+      await sleep(540);
+    }
+  }finally{tvBusy=false;if(miss.length)lazyPosters(miss,true)}
+}
 // article titles -> lead images, 50 per request; posters appear batch by batch
 async function imagesFor(map){
   const keys=Object.keys(map);
@@ -502,7 +539,7 @@ async function imagesFor(map){
       const j=await r.json();
       const alias={};for(const x of [...(j.query?.normalized||[]),...(j.query?.redirects||[])])alias[x.from]=x.to;
       const byTitle={};for(const p of Object.values(j.query?.pages||{}))byTitle[p.title]=p.thumbnail?.source||'';
-      for(const k of batch){let t=map[k],n=0;while(alias[t]&&n++<5)t=alias[t];S.posters[k]={u:byTitle[t]||'',w:t};upgradePoster(k)}
+      for(const k of batch){let t=map[k],n=0;while(alias[t]&&n++<5)t=alias[t];S.posters[k]={...(S.posters[k]||{}),u:byTitle[t]||'',w:t};upgradePoster(k)}
       save();
     }catch(e){}
   }
@@ -511,9 +548,13 @@ let _pfRunning=false;
 async function posterFetcher(){
   if(_pfRunning)return;_pfRunning=true;
   try{
-    const need=Object.values(S.items).filter(i=>!i.custom&&!i.extra&&!(i.key in S.posters));
-    if(!need.length)return;
     const vis=new Set([...document.querySelectorAll('[data-k]')].map(e=>e.dataset.k));
+    const shows=Object.values(S.items).filter(i=>i.media==='series'&&!i.custom&&!S.posters[i.key]?.tm);
+    shows.sort((a,b)=>(vis.has(b.key)?1:0)-(vis.has(a.key)?1:0)||(modeOK(b)?1:0)-(modeOK(a)?1:0)||(a.extra?1:0)-(b.extra?1:0)||(a.imdbRank||9e9)-(b.imdbRank||9e9));
+    tvEnqueue(shows.filter(i=>vis.has(i.key)).map(i=>i.key),true);
+    tvEnqueue(shows.map(i=>i.key));
+    const need=Object.values(S.items).filter(i=>!i.custom&&!i.extra&&i.media!=='series'&&!(i.key in S.posters));
+    if(!need.length)return;
     need.sort((a,b)=>(vis.has(b.key)?1:0)-(vis.has(a.key)?1:0)||(modeOK(b)?1:0)-(modeOK(a)?1:0));
     // 1) IMDb id -> English Wikipedia article via Wikidata, then images right away
     const withId=need.filter(i=>i.imdb);
@@ -533,8 +574,9 @@ async function posterFetcher(){
   }finally{_pfRunning=false}
 }
 const _lp=new Set();
-async function lazyPosters(keys){
-  keys=keys.filter(k=>S.items[k]&&!(k in S.posters)&&!_lp.has(k));if(!keys.length)return;
+async function lazyPosters(keys,force){
+  if(!force){tvEnqueue(keys.filter(k=>S.items[k]?.media==='series'),true);keys=keys.filter(k=>S.items[k]?.media!=='series')}
+  keys=keys.filter(k=>S.items[k]&&(force?!S.posters[k]?.u:!(k in S.posters))&&!_lp.has(k));if(!keys.length)return;
   keys.forEach(k=>_lp.add(k));
   const guess={};for(const k of keys){const it=S.items[k];guess[k]=it.media==='series'?[`${it.title} (TV series)`,`${it.title} (${it.year} TV series)`,`${it.title} (American TV series)`,`${it.title} (British TV series)`,`${it.title} (miniseries)`,it.title]:[`${it.title} (${it.year} film)`,`${it.title} (film)`,it.title]}
   const titles=[...new Set(Object.values(guess).flat())],info={};
@@ -559,7 +601,7 @@ async function lazyPosters(keys){
       const y=d.match(/\b(18|19|20)\d{2}\b/);if(y&&it.year&&Math.abs(+y[0]-it.year)>(it.media==='series'?2:1))continue;
       pick=pg;break;
     }
-    if(pick&&pick.thumbnail?.source){S.posters[k]={u:pick.thumbnail.source,w:pick.resolved};upgradePoster(k)}
+    if(pick&&pick.thumbnail?.source){S.posters[k]={...(S.posters[k]||{}),u:pick.thumbnail.source,w:pick.resolved};upgradePoster(k)}
     else misses.push(k);
   }
   // search for the ones the guesses missed, 4 at a time
@@ -580,7 +622,9 @@ async function lazyPosters(keys){
 function upgradePoster(k){
   const u=S.posters[k]?.u;if(!u)return;
   document.querySelectorAll(`[data-k="${CSS.escape(k)}"] .pwrap, [data-k="${CSS.escape(k)}"] .thumb`).forEach(w=>{
-    const tgt=w.querySelector('.open')||w;if(!tgt.querySelector('img'))tgt.insertAdjacentHTML('beforeend',`<img src="${esc(u)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.remove()">`);
+    const tgt=w.querySelector('.open')||w,img=tgt.querySelector('img');
+    if(img){if(img.getAttribute('src')!==u){img.classList.remove('logo');img.src=u}}
+    else tgt.insertAdjacentHTML('beforeend',`<img src="${esc(u)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onload="rlFit(this)" onerror="this.remove()">`);
   });
 }
 
@@ -734,7 +778,7 @@ function render(){
   statusChips(pool);
   const ph=S.f.person?personHTML(pool):S.f.company?companyHTML(pool):'';
   const sub=S.mode==='both'?S.sub:S.mode;
-  if(S.view==='oscars'){m.innerHTML=ph+(sub==='series'?emmysHTML():oscarsHTML());lazyPosters(pool.filter(i=>!i.imdb&&!i.custom).slice(0,40).map(i=>i.key));setTimeout(()=>posterFetcher(),300);return}
+  if(S.view==='oscars'){m.innerHTML=ph+(sub==='series'?emmysHTML():oscarsHTML());lazyPosters(pool.filter(i=>!i.imdb&&!i.custom&&i.media!=='series').slice(0,40).map(i=>i.key));tvEnqueue([...document.querySelectorAll('#main [data-k]')].map(e=>e.dataset.k),true);setTimeout(()=>posterFetcher(),300);return}
   const fy=S.view==='foryou';
   const res=sorted(pool.filter(i=>passes(i)),(S.f.person||S.f.company)?'oldest':fy?'hits':S.view==='imdb'?'rank':'popular');
   const head=(ph||(fy?forYouHTML(pool):tallyHTML()))+(S.view==='imdb'?subSeg():'')+`<div class="resinfo"><span>${res.length} ${res.length===1?'title':'titles'}${S.f.sort!=='auto'?' · '+SORTS[S.f.sort]:''}</span>${activeFilterCount()||S.f.q||S.f.person||S.f.company||S.f.status!=='all'?'<button type="button" id="clearall">Clear filters</button>':''}</div>`;
@@ -742,7 +786,8 @@ function render(){
   if(!res.length){m.innerHTML=head+`<div class="empty"><h3>Nothing here</h3><p>${fy&&S.f.status==='unseen'?'You have seen everything your seen titles recommend. Impressive.':S.f.status==='want'?'Tap “Want to see” on any title to build your watchlist.':'No titles match these filters.'}</p></div>`;return}
   m.innerHTML=head+`<div class="grid">${res.slice(0,S.shown).map(i=>cardHTML(i,{rank:S.view==='imdb'||S.f.sort==='rank',...(fy?fyOpts(i):{})})).join('')}</div>`+(res.length>S.shown?`<button type="button" class="more" id="more">Show more (${res.length-S.shown} left)</button>`:'');
   S._res=res;
-  lazyPosters(res.slice(0,S.shown).filter(i=>!i.imdb&&!i.custom).map(i=>i.key));
+  lazyPosters(res.slice(0,S.shown).filter(i=>!i.imdb&&!i.custom&&i.media!=='series').map(i=>i.key));
+  tvEnqueue(res.slice(0,S.shown).filter(i=>i.media==='series').map(i=>i.key),true);
   setTimeout(()=>posterFetcher(),300);
 }
 
@@ -900,12 +945,12 @@ function seriesDetail(it){
   h+=recsSection(it);
   h+=recordList('Emmy record',it.emmy)+recordList('Golden Globe record',it.globes);
   const wiki=S.posters[k]?.w;
-  h+=`<div class="links">${it.imdb?`<a href="https://www.imdb.com/title/${esc(it.imdb)}/" target="_blank" rel="noopener">IMDb</a>`:`<a href="https://www.imdb.com/find/?q=${encodeURIComponent(it.title+' '+(it.year||''))}&s=tt&ttype=tv" target="_blank" rel="noopener">IMDb</a>`}<a href="https://en.wikipedia.org/wiki/${wiki?encodeURIComponent(wiki.replace(/ /g,'_')):'Special:Search?search='+encodeURIComponent(it.title+' TV series')}" target="_blank" rel="noopener">Wikipedia</a><a href="https://www.justwatch.com/us/search?q=${encodeURIComponent(it.title)}" target="_blank" rel="noopener">Where to watch</a></div>`;
+  h+=`<div class="links">${it.imdb?`<a href="https://www.imdb.com/title/${esc(it.imdb)}/" target="_blank" rel="noopener">IMDb</a>`:`<a href="https://www.imdb.com/find/?q=${encodeURIComponent(it.title+' '+(it.year||''))}&s=tt&ttype=tv" target="_blank" rel="noopener">IMDb</a>`}<a href="https://en.wikipedia.org/wiki/${wiki?encodeURIComponent(wiki.replace(/ /g,'_')):'Special:Search?search='+encodeURIComponent(it.title+' TV series')}" target="_blank" rel="noopener">Wikipedia</a><a href="https://www.justwatch.com/us/search?q=${encodeURIComponent(it.title)}" target="_blank" rel="noopener">Where to watch</a>${S.posters[k]?.i?`<a href="https://www.tvmaze.com/shows/${+S.posters[k].i}" target="_blank" rel="noopener">TVmaze</a>`:''}</div>`;
   if(it.confidence&&it.confidence!=='high')h+=`<p class="note">Some details for this show are less certain. Check IMDb if something looks off.</p>`;
   if(it.extra)h+=`<p class="note">This show isn't on the IMDb Top 250 TV or Emmy lists. Mark it seen or want to see and it stays in your All tab.</p>`;
   h+='</div>';
   openSheet(h,it.extra?'Recommended show':it.emmy?.wins?'Emmy-winning series':it.emmy?'Emmy nominee':it.imdbRank?'IMDb Top 250 TV':'TV series');
-  lazyPosters([...(it.extra?[k]:[]),...(S.recs?.[k]||[]).map(r=>r[0])].filter(x=>S.items[x]?.extra));
+  tvEnqueue([k,...(S.recs?.[k]||[]).map(r=>r[0]),...S.awards.filter(a=>a.winner===k||a.nominees.includes(k)).flatMap(a=>[a.winner,...a.nominees])].filter(Boolean),true);
 }
 function people(a){
   if(!a||!a.length)return '<span style="color:var(--faint)">—</span>';
@@ -1057,7 +1102,7 @@ function listsHTML(){
     <div class="lbtns"><button type="button" class="btn pri" id="nl-go">Create list</button><button type="button" class="btn" id="imp-open">Paste a list file</button></div>
     <div id="impbox" hidden><div class="field"><label for="imptxt">List file (JSON)</label><textarea id="imptxt" spellcheck="false" placeholder='{"list":{"name":"Top 100 games","media":"game"},"items":[{"title":"Hollow Knight","year":2017,"creator":"Team Cherry"}]}'></textarea></div><div class="lbtns"><button type="button" class="btn pri" id="imp-go">Import list</button></div></div></div>`;
   h+=`<div class="lcard"><h3>Install on your phone</h3><p>Android (Chrome): open the menu ⋮ and tap <b>Add to Home screen</b> or <b>Install app</b>. iPhone (Safari): tap Share, then <b>Add to Home Screen</b>. It then opens full screen and works offline.</p></div>
-    <p class="note">Data: IMDb Top 250 and Top 250 TV snapshots (Sept 2026); Oscar nominations from the Academy's records via the open oscar_data dataset; Emmy and Golden Globe series categories from Wikipedia's award histories; posters from Wikipedia. Summaries are written for this app.</p>`;
+    <p class="note">Data: IMDb Top 250 and Top 250 TV snapshots (Sept 2026); Oscar nominations from the Academy's records via the open oscar_data dataset; Emmy and Golden Globe series categories from Wikipedia's award histories; film posters from Wikipedia; TV posters from <a href="https://www.tvmaze.com" target="_blank" rel="noopener" style="color:inherit">TVmaze</a> (CC BY-SA), with Wikipedia as backup. Summaries are written for this app.</p>`;
   return h;
 }
 function addItemForm(lid){
