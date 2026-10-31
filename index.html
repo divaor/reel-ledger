@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#101216">
-<meta name="description" content="Track the IMDb Top 250 and every Best Picture nominee you have seen.">
+<meta name="description" content="Track the films, TV shows and games you have seen and played: IMDb Top 250, Oscars, Emmys, Top 250 games and Game of the Year.">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -52,9 +52,28 @@ button{cursor:pointer}
 .top .wrap{padding-block:10px 8px;display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
 .brandrow{display:flex;align-items:center;gap:8px;min-width:0}
 .modeseg{margin-left:auto;display:inline-flex;flex:none;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:2px;gap:2px}
-.modeseg button{height:30px;padding:0 10px;border:0;border-radius:7px;background:none;font-weight:700;font-size:13px;color:var(--muted)}
+.modeseg button{height:30px;padding:0 9px;border:0;border-radius:7px;background:none;font-weight:700;font-size:13px;color:var(--muted)}
 .modeseg button[aria-pressed="true"]{background:var(--fg);color:var(--bg)}
-@media (max-width:400px){.brand{font-size:22px!important}.modeseg button{padding:0 8px;font-size:12.5px}}
+.modeseg .mixbtn{border-left:1px solid var(--line);border-radius:0 7px 7px 0;margin-left:2px}
+.modeseg .mixbtn[aria-pressed="true"]{background:var(--brass);color:var(--brass-ink)}
+.mixing .modeseg button[data-mode]:not(.mixbtn)[aria-pressed="true"]{background:var(--raise);color:var(--fg);box-shadow:inset 0 0 0 1.5px var(--brass)}
+@media (max-width:420px){.brand{font-size:21px!important}.modeseg button{padding:0 7px;font-size:12.5px}}
+@media (max-width:370px){.brand{font-size:18px!important}.modeseg button{padding:0 5px;font-size:12px}}
+.bdg.game{background:#9b6cf0;color:#fff}
+.tag.gamet{background:#9b6cf0;color:#fff}
+.card.is-full .mark span{background:var(--brass);border-color:var(--brass)}
+.card.is-full .mark svg{opacity:1;color:var(--brass-ink)}
+.lvseg{display:flex;gap:6px;margin-top:14px}
+.lvseg button{flex:1;height:42px;border-radius:21px;border:1px solid var(--line);background:var(--panel);font-weight:700;font-size:13.5px;color:var(--fg)}
+.lvseg button[aria-pressed="true"][data-lv="1"]{background:color-mix(in srgb,var(--seen) 35%,var(--panel));border-color:var(--seen)}
+.lvseg button[aria-pressed="true"][data-lv="2"]{background:var(--seen);border-color:var(--seen);color:var(--seen-ink)}
+.lvseg button[aria-pressed="true"][data-lv="3"]{background:var(--brass);border-color:var(--brass);color:var(--brass-ink)}
+.locked .lvseg button{opacity:.55}
+.platchips{display:flex;flex-wrap:wrap;gap:4px}
+.platchips .tag{font-family:var(--mono);font-weight:500}
+.tally.t3m{grid-template-columns:repeat(3,minmax(0,1fr))}
+.tally.t4{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.tally.t4 .tile{padding:8px 8px 9px}.tally.t4 .tile .v{font-size:20px}.tally.t4 .tile .k{font-size:10px}
 .bdg.tv{background:#5b7cfa;color:#fff}
 .bdg.film{background:rgba(10,12,16,.78);color:#f4f1ea;border:1px solid rgba(255,255,255,.4)}
 .bdg.prog{background:#3fc2a6;color:#06221c}
@@ -277,10 +296,10 @@ main{padding-bottom:calc(var(--tabh) + env(safe-area-inset-bottom,0px) + 24px)}
 <body>
 <header class="top" id="top">
   <div class="wrap">
-    <div class="brandrow"><h1 class="brand">Reel <b>Ledger</b></h1><span class="viewname" id="viewname" hidden>All titles</span><div class="modeseg" role="group" aria-label="Show movies, TV or both"><button type="button" data-mode="movie">Movies</button><button type="button" data-mode="series">TV</button><button type="button" data-mode="both">Both</button></div><button type="button" class="lockbtn" id="lockbtn" aria-pressed="false" aria-label="Lock marks"></button></div>
+    <div class="brandrow"><h1 class="brand">Reel <b>Ledger</b></h1><span class="viewname" id="viewname" hidden>All titles</span><div class="modeseg" role="group" aria-label="Show movies, TV, games or a mix"><button type="button" data-mode="movie">Movies</button><button type="button" data-mode="series">TV</button><button type="button" data-mode="game">Games</button><button type="button" data-mode="mix" class="mixbtn">Mix</button></div></div>
     <div class="searchrow" id="searchrow">
       <label class="search"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="q" type="search" placeholder="Title, director, actor…" autocomplete="off" aria-label="Search"></label>
-      <button class="fbtn" id="fbtn" type="button" aria-label="Filters and sort"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg>Filters<span class="n" id="fcount" hidden>0</span></button>
+      <button class="fbtn" id="fbtn" type="button" aria-label="Filters and sort"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg>Filters<span class="n" id="fcount" hidden>0</span></button><button type="button" class="lockbtn" id="lockbtn" aria-pressed="false" aria-label="Lock marks"></button>
     </div>
     <div class="chips" id="statuschips" role="group" aria-label="Status"></div>
   </div>
@@ -335,8 +354,9 @@ const S={
   custom:store.get('rl.custom',{lists:[],items:{}}),
   posters:store.get('rl.posters',{}),        // key -> {u:url,w:wikiTitle} or {u:''}
   view:'all', shown:90,
-  f:{q:'',status:'all',src:[],genre:[],decade:[],flags:[],media:[],sort:'auto',person:'',company:'',formats:[],tvst:[]},
-  mode:store.get('rl.mode','movie'), sub:store.get('rl.sub','movie'), awards:[], emCats:store.get('rl.emcats',['drama','comedy','limited']), coCount:{},
+  f:{q:'',status:'all',src:[],genre:[],decade:[],flags:[],media:[],sort:'auto',person:'',company:'',formats:[],tvst:[],plat:[],f2p:false,franchise:''},
+  modes:(()=>{const m=store.get('rl.modes',null);if(Array.isArray(m)&&m.length)return m;const o=store.get('rl.mode','movie');return o==='both'?['movie','series']:[o]})(),
+  mix:store.get('rl.mix',store.get('rl.mode','')==='both'), sub:store.get('rl.sub','movie'), awards:[], gawards:[], emCats:store.get('rl.emcats',['drama','comedy','limited']), gCats:store.get('rl.gcats',['dice','tga','bafta']), coCount:{},
   recs:null, recBy:{}, peopleCount:{},
   oscarMode:'races',
   locked:!!store.get('rl.locked',0)
@@ -344,8 +364,27 @@ const S={
 const saveMarks=()=>store.set('rl.marks',S.marks);
 const saveCustom=()=>store.set('rl.custom',S.custom);
 const isSeen=k=>!!S.marks[k]?.s, isWant=k=>!!S.marks[k]?.w;
-const isWatching=k=>!S.marks[k]?.s&&(S.marks[k]?.ss||[]).length>0;
-const modeOK=i=>S.mode==='both'||i.media===S.mode;
+const isWatching=k=>!S.marks[k]?.s&&((S.marks[k]?.ss||[]).length>0||S.marks[k]?.g===1);
+Object.defineProperty(S,'mode',{get(){return S.modes.length>1?'both':S.modes[0]}});
+const CORE=['movie','series','game'];
+const isMix=()=>S.modes.length>1;
+const modeOK=i=>S.modes.includes(i.media)||(S.modes.length===3&&!CORE.includes(i.media));
+const rankOf=i=>i.imdbRank||i.topRank;
+const gLevel=k=>S.marks[k]?.g||(S.marks[k]?.s&&S.items[k]?.media==='game'?2:0);
+const GLV=['Not played','Played','Finished','100% completed'];
+function setGame(k,lv){
+  const m=S.marks[k]||{};delete m.g;delete m.s;
+  if(lv>0){m.g=lv;if(lv>=2)delete m.w;m.t=Date.now();if(lv>=2)m.s=1}
+  if(Object.keys(m).filter(x=>x!=='t').length)S.marks[k]=m;else delete S.marks[k];
+  saveMarks();refreshMarks(k);
+}
+const SEENL=(it,on)=>it?.media==='game'?(on?'Finished':'Mark finished'):(on?'Seen':'Mark seen');
+const WANTL=(it,on)=>on?(it?.media==='game'?'Want to play ✓':'On watchlist'):(it?.media==='game'?'Want to play':'Want to see');
+const gamePlats=i=>[...new Set([...(i.platforms||[]).map(p=>p.p),...(i.versions||[]).flatMap(v=>v.platforms||[])])];
+const PLAT_ORDER=['PS5','PS4','PS3','PS2','PS1','PSP','Vita','Xbox Series','Xbox One','Xbox 360','Xbox','Switch 2','Switch','Wii U','Wii','GameCube','N64','SNES','NES','3DS','DS','GBA','GBC','Game Boy','PC','Mac','Linux','DOS','Dreamcast','Saturn','Genesis','Master System','Game Gear','TurboGrafx-16','Neo Geo','Arcade','Atari 2600','Amiga','C64','iOS','Android','Stadia'];
+const GCAT={dice:'D.I.C.E.',tga:'The Game Awards',bafta:'BAFTA'};
+const GCATLONG={dice:'D.I.C.E. Awards',tga:'The Game Awards',bafta:'BAFTA Games Awards'};
+const isF2P=i=>i.media==='game'&&(i.model==='free-to-play'||i.liveService||i.mobileOnly);
 const FORMATS={miniseries:['Miniseries','One complete story in a single season (limited series)'],serialized:['Serialized','One continuing story across seasons'],semiserialized:['Semi-serialized','Stand-alone episodes plus season-long arcs'],procedural:['Procedural','A case, patient or crime of the week'],sitcom:['Sitcom','Situation comedy'],anthology:['Anthology','A new story and cast each season or episode'],docuseries:['Docuseries','Documentary series'],variety:['Sketch / variety','Sketch comedy, talk or variety show'],tvfilm:['TV film','A single feature-length TV movie'],special:['Special','A one-off program']};
 const TVST={ongoing:'Ongoing',concluded:'Concluded',cancelled:'Cancelled',unresolved:'Unresolved ending'};
 const EMCAT={drama:'Drama',comedy:'Comedy',limited:'Limited'};
@@ -358,6 +397,7 @@ function setSeason(k,n,on){
   saveMarks();refreshMarks(k);
 }
 function setMark(k,field,val){
+  if(field==='s'&&S.items[k]?.media==='game'){setGame(k,val?2:0);return}
   const m=S.marks[k]||{}; if(val)m[field]=1; else delete m[field];
   if(field==='s')delete m.ss;
   if(field==='s'&&val){delete m.w;m.t=Date.now()}
@@ -376,6 +416,10 @@ async function load(){
     for(const it of tv.items)S.items[it.key]={media:'series',...it};
     S.awards=(tv.awards||[]).sort((a,b)=>b.year-a.year||['drama','comedy','limited'].indexOf(a.cat)-['drama','comedy','limited'].indexOf(b.cat));
   }catch(e){}
+  try{const r=await fetch('data/games.json',{cache:'no-cache'});const gm=await r.json();
+    for(const it of gm.items)S.items[it.key]={media:'game',...it};
+    S.gawards=(gm.awards||[]).sort((a,b)=>b.year-a.year||['dice','tga','bafta'].indexOf(a.cat)-['dice','tga','bafta'].indexOf(b.cat));
+  }catch(e){}
   S.ceremonies=cat.ceremonies.sort((a,b)=>b.ceremony-a.ceremony);
   for(const c of S.ceremonies)for(const k of c.nominees){const it=S.items[k];if(it){it.bp={ceremony:c.ceremony,winner:k===c.winner}}}
   mergeCustom();
@@ -393,7 +437,7 @@ async function loadExtras(){
 async function loadRecs(){
   let d;try{const r=await fetch('data/recs.json',{cache:'no-cache'});d=await r.json()}catch(e){return}
   S.recs=d.r||{};
-  for(const [k,v] of Object.entries(d.x||{}))S.items[k]=v[4]==='series'?{key:k,media:'series',extra:true,title:v[0],year:v[1],creators:v[2]||[],genres:v[3]||[]}:{key:k,media:'movie',extra:true,title:v[0],year:v[1],directors:v[2]||[],genres:v[3]||[]};
+  for(const [k,v] of Object.entries(d.x||{}))S.items[k]=v[4]==='game'?{key:k,media:'game',extra:true,title:v[0],year:v[1],developers:v[2]||[],genres:v[3]||[]}:v[4]==='series'?{key:k,media:'series',extra:true,title:v[0],year:v[1],creators:v[2]||[],genres:v[3]||[]}:{key:k,media:'movie',extra:true,title:v[0],year:v[1],directors:v[2]||[],genres:v[3]||[]};
   S.recBy={};
   for(const [src,arr] of Object.entries(S.recs))for(const [t,why] of arr)(S.recBy[t]=S.recBy[t]||[]).push([src,why]);
   mergeCustom();
@@ -415,15 +459,21 @@ function mergeCustom(){
       {id:'imdbtv',name:'IMDb Top 250 TV',media:'series',builtin:true,keys:Object.values(S.items).filter(i=>i.imdbRank&&i.media==='series').sort((a,b)=>a.imdbRank-b.imdbRank).map(i=>i.key)},
       {id:'emw',name:'Emmy series winners',media:'series',builtin:true,keys:[...new Set(S.awards.map(a=>a.winner).filter(Boolean))]},
       {id:'emn',name:'Emmy series nominees',media:'series',builtin:true,keys:[...new Set(S.awards.flatMap(a=>[a.winner,...a.nominees]).filter(Boolean))]}]:[]),
+    ...(S.gawards.length?[
+      {id:'topg',name:'Top 250 games (Backloggd)',media:'game',builtin:true,keys:Object.values(S.items).filter(i=>i.topRank&&i.media==='game').sort((a,b)=>a.topRank-b.topRank).map(i=>i.key)},
+      {id:'gotyw',name:'Game of the Year winners',media:'game',builtin:true,keys:[...new Set(S.gawards.map(a=>a.winner).filter(Boolean))]},
+      {id:'gotyn',name:'Game of the Year nominees',media:'game',builtin:true,keys:[...new Set(S.gawards.flatMap(a=>[a.winner,...a.nominees]).filter(Boolean))]}]:[]),
+    ...(Object.values(S.items).some(i=>i.extra&&i.media==='game')?[{id:'recsg',name:'Recommended games',media:'game',builtin:true,keys:Object.values(S.items).filter(i=>i.extra&&i.media==='game').sort((a,b)=>(S.recBy[b.key]?.length||0)-(S.recBy[a.key]?.length||0)).map(i=>i.key)}]:[]),
     ...(Object.values(S.items).some(i=>i.extra&&i.media==='series')?[{id:'recstv',name:'Recommended shows',media:'series',builtin:true,keys:Object.values(S.items).filter(i=>i.extra&&i.media==='series').sort((a,b)=>(S.recBy[b.key]?.length||0)-(S.recBy[a.key]?.length||0)).map(i=>i.key)}]:[]),
     ...S.custom.lists.map(l=>({...l,keys:l.keys||[]}))
   ];
   for(const it of Object.values(S.items))it._lists=[];
   for(const l of S.lists)for(const k of l.keys)S.items[k]&&S.items[k]._lists.push(l.id);
   for(const it of Object.values(S.items)){
-    it._q=norm([it.title,it.originalTitle,it.year,...(it.creators||[]),...(it.network||[]),...(it.studios||[]),it.distributor,...(it.directors||[]),...(it.cast||[]),...(it.writers||[]),it.creator,it.source].join(' '));
-    it._people=new Set([...(it.directors||[]),...(it.creators||[]),...(it.writers||[]),...(it.cast||[]),it.creator].filter(Boolean).map(n=>norm(pn(n))));
-    it._cos=new Set([...(it.studios||[]),it.distributor,...(it.network||[])].filter(Boolean).map(norm));
+    it._q=norm([it.title,it.originalTitle,it.year,...(it.developers||[]),...(it.publishers||[]),...(it.composers||[]),...(it.creators||[]),...(it.network||[]),...(it.studios||[]),it.distributor,...(it.directors||[]),...(it.cast||[]),...(it.writers||[]),it.creator,it.source].join(' '));
+    it._people=new Set([...(it.directors||[]),...(it.creators||[]),...(it.writers||[]),...(it.cast||[]),...(it.composers||[]),it.creator].filter(Boolean).map(n=>norm(pn(n))));
+    it._cos=new Set([...(it.studios||[]),it.distributor,...(it.network||[]),...(it.developers||[]),...(it.publishers||[])].filter(Boolean).map(norm));
+    if(it.media==='game'){it._plats=gamePlats(it);it._q+=' '+norm([it.series,...it._plats].join(' '))}
   }
   countPeople();
 }
@@ -441,17 +491,32 @@ const FLAGS=[
   ['short1','One season only',i=>i.media==='series'&&i.seasons===1,'series'],
   ['bw','Before 1960',i=>i.year&&i.year<1960],
   ['new','2020 or later',i=>i.year>=2020],
-  ['multi','3+ Oscar wins',i=>(i.oscars?.wins||0)>=3,'movie']
+  ['multi','3+ Oscar wins',i=>(i.oscars?.wins||0)>=3,'movie'],
+  ['gcoop','Co-op',i=>!!(i.players?.localCoop||i.players?.onlineCoop),'game'],
+  ['gcouch','Couch co-op / local multiplayer',i=>!!(i.players?.localCoop||(i.players?.localMax||1)>=2),'game'],
+  ['gsplit','Split-screen',i=>!!i.players?.splitScreen,'game'],
+  ['gonline','Online multiplayer',i=>(i.players?.onlineMax||0)>=2&&!i.onlineShutDown,'game'],
+  ['gsolo','Single-player only',i=>i.media==='game'&&!!i.players?.single&&(i.players?.localMax||1)<=1&&!i.players?.onlineMax,'game'],
+  ['gopen','Open world',i=>!!i.openWorld,'game'],
+  ['gremaster','Has a remaster or remake',i=>(i.versions||[]).some(v=>/remaster|remake|definitive/.test(v.type||'')),'game'],
+  ['gremake','Is a remake',i=>!!i.remakeOf,'game'],
+  ['gshort','Short (10 h or less)',i=>!!(i.length?.main&&i.length.main<=10),'game'],
+  ['glong','Long (40 h or more)',i=>(i.length?.main||0)>=40,'game'],
+  ['gmodern','On current platforms',i=>i.media==='game'&&(i._plats||[]).some(p=>['PS5','Xbox Series','Switch','Switch 2','PC'].includes(p)),'game'],
+  ['gstory','Based on a book, film or show',i=>i.media==='game'&&/book|film|TV|comic|anime/i.test(i.basedOn||''),'game']
 ];
-const SORTS={auto:'Best for this view',hits:'Most recommended',rank:'IMDb rank',rating:'IMDb rating',newest:'Newest first',oldest:'Oldest first',title:'Title A–Z',oscars:'Most Oscar wins',emmys:'Most Emmy series wins',seasons:'Fewest seasons',recent:'Recently marked'};
-const SORT_SCOPE={oscars:'movie',emmys:'series',seasons:'series'};
-function activeFilterCount(){const f=S.f;return f.src.length+f.genre.length+f.decade.length+f.flags.length+f.media.length+f.formats.length+f.tvst.length+(f.sort!=='auto'?1:0)}
+const SORTS={auto:'Best for this view',hits:'Most recommended',rank:'Top 250 rank',rating:'Rating',newest:'Newest first',oldest:'Oldest first',title:'Title A–Z',oscars:'Most Oscar wins',emmys:'Most Emmy series wins',seasons:'Fewest seasons',goty:'Most GOTY wins',short:'Shortest to beat',recent:'Recently marked'};
+const SORT_SCOPE={oscars:'movie',emmys:'series',seasons:'series',goty:'game',short:'game'};
+function activeFilterCount(){const f=S.f;return f.src.length+f.genre.length+f.decade.length+f.flags.length+f.media.length+f.formats.length+f.tvst.length+f.plat.length+(f.f2p?1:0)+(f.sort!=='auto'?1:0)}
 const tvStatusOf=i=>i.status==='cancelled'&&i.unresolved?['cancelled','unresolved']:[i.status];
 function passes(it,ignoreStatus){
   const f=S.f;
   if(f.q&&!it._q.includes(norm(f.q)))return false;
   if(f.person&&!it._people?.has(norm(f.person)))return false;
   if(f.company&&!it._cos?.has(norm(f.company)))return false;
+  if(f.franchise&&norm(it.series||'')!==norm(f.franchise))return false;
+  if(!f.f2p&&isF2P(it))return false;
+  if(f.plat.length&&!(it._plats&&f.plat.some(p=>it._plats.includes(p))))return false;
   if(f.formats.length&&!f.formats.includes(it.format))return false;
   if(f.tvst.length&&!f.tvst.some(x=>tvStatusOf(it).includes(x)))return false;
   if(!ignoreStatus){
@@ -459,6 +524,8 @@ function passes(it,ignoreStatus){
     if(f.status==='unseen'&&isSeen(it.key))return false;
     if(f.status==='want'&&!isWant(it.key))return false;
     if(f.status==='watching'&&!isWatching(it.key))return false;
+    if(f.status==='none'&&(isSeen(it.key)||isWatching(it.key)))return false;
+    if(f.status==='full'&&gLevel(it.key)!==3)return false;
   }
   if(f.src.length&&!f.src.some(s=>it._lists.includes(s)))return false;
   if(f.media.length&&!f.media.includes(it.media))return false;
@@ -470,8 +537,10 @@ function passes(it,ignoreStatus){
 function sorted(arr,def){
   const s=S.f.sort==='auto'?def:S.f.sort;
   const by={
-    rank:(a,b)=>(a.imdbRank||9e9)-(b.imdbRank||9e9)||(b.imdbVotes||0)-(a.imdbVotes||0),
-    rating:(a,b)=>(b.imdbRating||0)-(a.imdbRating||0),
+    rank:(a,b)=>(rankOf(a)||9e9)-(rankOf(b)||9e9)||(b.imdbVotes||0)-(a.imdbVotes||0),
+    rating:(a,b)=>(b.imdbRating||(b.rating||0)*2)-(a.imdbRating||(a.rating||0)*2),
+    goty:(a,b)=>(b.goty?.wins||0)-(a.goty?.wins||0)||(b.goty?.noms||0)-(a.goty?.noms||0),
+    short:(a,b)=>(a.length?.main||999)-(b.length?.main||999),
     newest:(a,b)=>(b.year||0)-(a.year||0)||a.title.localeCompare(b.title),
     oldest:(a,b)=>(a.year||0)-(b.year||0)||a.title.localeCompare(b.title),
     title:(a,b)=>a.title.replace(/^(the|a|an) /i,'').localeCompare(b.title.replace(/^(the|a|an) /i,'')),
@@ -479,8 +548,8 @@ function sorted(arr,def){
     emmys:(a,b)=>(b.emmy?.wins||0)-(a.emmy?.wins||0)||(b.emmy?.noms||0)-(a.emmy?.noms||0),
     seasons:(a,b)=>(a.seasons||99)-(b.seasons||99)||(b.imdbVotes||0)-(a.imdbVotes||0),
     recent:(a,b)=>(S.marks[b.key]?.t||0)-(S.marks[a.key]?.t||0),
-    hits:(a,b)=>(S._hits?.[b.key]?.n||0)-(S._hits?.[a.key]?.n||0)||(a.imdbRank||9e9)-(b.imdbRank||9e9)||(b.imdbVotes||0)-(a.imdbVotes||0)||(b.year||0)-(a.year||0),
-    popular:(a,b)=>((a.imdbRank?0:1)-(b.imdbRank?0:1))||(a.imdbRank||0)-(b.imdbRank||0)||((b.bp?.winner||b.emmy?.wins)?1:0)-((a.bp?.winner||a.emmy?.wins)?1:0)||(b.year||0)-(a.year||0)
+    hits:(a,b)=>(S._hits?.[b.key]?.n||0)-(S._hits?.[a.key]?.n||0)||(rankOf(a)||9e9)-(rankOf(b)||9e9)||(b.imdbVotes||0)-(a.imdbVotes||0)||(b.year||0)-(a.year||0),
+    popular:(a,b)=>((rankOf(a)?0:1)-(rankOf(b)?0:1))||(rankOf(a)||0)-(rankOf(b)||0)||((b.bp?.winner||b.emmy?.wins||b.goty?.wins)?1:0)-((a.bp?.winner||a.emmy?.wins||a.goty?.wins)?1:0)||(b.year||0)-(a.year||0)
   };
   return arr.sort(by[s]||by.popular);
 }
@@ -578,7 +647,7 @@ async function lazyPosters(keys,force){
   if(!force){tvEnqueue(keys.filter(k=>S.items[k]?.media==='series'),true);keys=keys.filter(k=>S.items[k]?.media!=='series')}
   keys=keys.filter(k=>S.items[k]&&(force?!S.posters[k]?.u:!(k in S.posters))&&!_lp.has(k));if(!keys.length)return;
   keys.forEach(k=>_lp.add(k));
-  const guess={};for(const k of keys){const it=S.items[k];guess[k]=it.media==='series'?[`${it.title} (TV series)`,`${it.title} (${it.year} TV series)`,`${it.title} (American TV series)`,`${it.title} (British TV series)`,`${it.title} (miniseries)`,it.title]:[`${it.title} (${it.year} film)`,`${it.title} (film)`,it.title]}
+  const guess={};for(const k of keys){const it=S.items[k];guess[k]=it.media==='game'?[`${it.title} (${it.year} video game)`,`${it.title} (video game)`,it.title]:it.media==='series'?[`${it.title} (TV series)`,`${it.title} (${it.year} TV series)`,`${it.title} (American TV series)`,`${it.title} (British TV series)`,`${it.title} (miniseries)`,it.title]:[`${it.title} (${it.year} film)`,`${it.title} (film)`,it.title]}
   const titles=[...new Set(Object.values(guess).flat())],info={};
   for(let i=0;i<titles.length;i+=50){
     const part=titles.slice(i,i+50);
@@ -597,7 +666,7 @@ async function lazyPosters(keys,force){
     for(const [n,g] of guess[k].entries()){
       const pg=info[g];if(!pg)continue;const d=pg.description||'';
       if(/disambiguation/i.test(d))continue;
-      if(n===last&&!(it.media==='series'?/series|television|sitcom|miniseries|show|programme|anime|drama/i:/film/i).test(d))continue;
+      if(n===last&&!(it.media==='game'?/game/i:it.media==='series'?/series|television|sitcom|miniseries|show|programme|anime|drama/i:/film/i).test(d))continue;
       const y=d.match(/\b(18|19|20)\d{2}\b/);if(y&&it.year&&Math.abs(+y[0]-it.year)>(it.media==='series'?2:1))continue;
       pick=pg;break;
     }
@@ -610,7 +679,7 @@ async function lazyPosters(keys,force){
     await Promise.all(misses.slice(i,i+4).map(async k=>{
       const it=S.items[k];
       try{
-        const r=await fetch(`https://en.wikipedia.org/w/api.php?action=query&list=search&srlimit=1&format=json&origin=*&srsearch=${encodeURIComponent(it.title+' '+(it.year||'')+(it.media==='series'?' TV series':' film'))}`);
+        const r=await fetch(`https://en.wikipedia.org/w/api.php?action=query&list=search&srlimit=1&format=json&origin=*&srsearch=${encodeURIComponent(it.title+' '+(it.year||'')+(it.media==='series'?' TV series':it.media==='game'?' video game':' film'))}`);
         const j=await r.json();const hit=j.query?.search?.[0];if(hit)found[k]=hit.title;
       }catch(e){}
     }));
@@ -632,31 +701,37 @@ function upgradePoster(k){
 function cardHTML(it,opts={}){
   const seen=isSeen(it.key),want=isWant(it.key);
   const b=[];
-  if(S.mode==='both')b.push(it.media==='series'?'<span class="bdg tv">TV</span>':it.media==='movie'?'<span class="bdg film">Film</span>':`<span class="bdg">${esc(MEDIA[it.media]?.label||'')}</span>`);
+  if(isMix())b.push(it.media==='series'?'<span class="bdg tv">TV</span>':it.media==='movie'?'<span class="bdg film">Film</span>':it.media==='game'?'<span class="bdg game">Game</span>':`<span class="bdg">${esc(MEDIA[it.media]?.label||'')}</span>`);
   if(opts.hits)b.push(`<span class="bdg gold">${opts.hits} hit${opts.hits>1?'s':''}</span>`);
-  if(opts.rank&&it.imdbRank)b.push(`<span class="bdg">#${it.imdbRank}</span>`);
+  if(opts.rank&&rankOf(it))b.push(`<span class="bdg">#${rankOf(it)}</span>`);
+  if(it.goty?.wins)b.push(`<span class="bdg gold">GOTY</span>`);
+  else if(it.goty?.noms&&!opts.noNom)b.push(`<span class="bdg nom">GOTY nom</span>`);
+  const lv=it.media==='game'?gLevel(it.key):0;
+  if(lv===3)b.push(`<span class="bdg gold lv3">100%</span>`);
   if(it.bp?.winner)b.push(`<span class="bdg gold">BP win</span>`);
   else if(it.bp&&!opts.noNom)b.push(`<span class="bdg nom">BP nom</span>`);
   if(it.emmy?.wins)b.push(`<span class="bdg gold">Emmy win</span>`);
   else if(it.emmy?.noms&&!opts.noNom)b.push(`<span class="bdg nom">Emmy nom</span>`);
-  const part=it.media==='series'&&isWatching(it.key),ssn=part?seasonsSeen(it.key).length:0;
+  const part=it.media==='series'&&isWatching(it.key),ssn=part?seasonsSeen(it.key).length:0,gpart=lv===1;
   if(part)b.push(`<span class="bdg prog">${ssn}/${it.seasons||'?'}</span>`);
   if(it.extra)b.push(`<span class="bdg off">Off list</span>`);
-  return `<div class="card${seen?' is-seen':''}${part?' is-part':''}" data-k="${esc(it.key)}">
+  return `<div class="card${seen?' is-seen':''}${part||gpart?' is-part':''}${lv===3?' is-full':''}" data-k="${esc(it.key)}">
     <div class="pwrap"><button type="button" class="open" aria-label="${esc(it.title)} details" style="all:unset;position:absolute;inset:0;cursor:pointer">${posterHTML(it)}</button>
       ${want?'<i class="wantflag"></i>':''}<span class="badges">${b.join('')}</span>${part&&it.seasons?`<i class="sprog"><i style="width:${ssn/it.seasons*100}%"></i></i>`:''}
       <button type="button" class="mark" aria-pressed="${seen}" aria-label="Seen ${esc(it.title)}"><span>${CHECK}</span></button></div>
-    <button type="button" class="ctitle open">${esc(it.title)}</button><span class="cyear">${it.media==='series'?esc(yearsTxt(it))+(it.seasons?` · ${it.seasons} season${it.seasons>1?'s':''}`:''):esc(it.year||'')+(it.media!=='movie'?' · '+esc(MEDIA[it.media]?.label||''):'')}</span>${opts.why?`<span class="why">${esc(opts.why)}</span>`:''}</div>`;
+    <button type="button" class="ctitle open">${esc(it.title)}</button><span class="cyear">${it.media==='game'?esc(it.year||'')+((it.platforms||[]).find(p=>p.orig)?' · '+esc((it.platforms||[]).filter(p=>p.orig).map(p=>p.p).slice(0,2).join(', ')):''):it.media==='series'?esc(yearsTxt(it))+(it.seasons?` · ${it.seasons} season${it.seasons>1?'s':''}`:''):esc(it.year||'')+(it.media!=='movie'?' · '+esc(MEDIA[it.media]?.label||''):'')}</span>${opts.why?`<span class="why">${esc(opts.why)}</span>`:''}</div>`;
 }
 function yearsTxt(it){if(it.media!=='series')return String(it.year||'');const e=it.endYear;return it.year?(e&&e!==it.year?`${it.year}–${e}`:!e&&it.status==='ongoing'?`${it.year}–`:`${it.year}`):''}
 function refreshMarks(k){
   const seen=isSeen(k),want=isWant(k),it=S.items[k];
-  const part=it?.media==='series'&&isWatching(k),ssn=seasonsSeen(k);
+  const part=it?.media==='series'&&isWatching(k),ssn=seasonsSeen(k),lv=it?.media==='game'?gLevel(k):0;
   document.querySelectorAll(`[data-k="${CSS.escape(k)}"]`).forEach(el=>{
     el.querySelectorAll('.sbtn').forEach(b=>b.setAttribute('aria-pressed',ssn.includes(+b.dataset.sn)));
     el.querySelectorAll('.sprogtxt').forEach(t=>t.textContent=`${ssn.length} of ${it?.seasons||0} seasons watched`);
+    el.querySelectorAll('[data-lv]').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.lv===lv));
     if(el.classList.contains('card')){
-      el.classList.toggle('is-part',part);
+      el.classList.toggle('is-part',part||lv===1);el.classList.toggle('is-full',lv===3);
+      const bd=el.querySelector('.badges');if(bd&&it?.media==='game'){bd.querySelector('.bdg.lv3')?.remove();if(lv===3)bd.insertAdjacentHTML('beforeend','<span class="bdg gold lv3">100%</span>')}
       const pw0=el.querySelector('.pwrap');pw0.querySelector('.sprog')?.remove();pw0.querySelector('.bdg.prog')?.remove();
       if(part&&it.seasons){pw0.insertAdjacentHTML('beforeend',`<i class="sprog"><i style="width:${ssn.length/it.seasons*100}%"></i></i>`);pw0.querySelector('.badges')?.insertAdjacentHTML('beforeend',`<span class="bdg prog">${ssn.length}/${it.seasons}</span>`)}
       el.classList.toggle('is-seen',seen);
@@ -665,8 +740,8 @@ function refreshMarks(k){
       if(want&&!wf)pw.insertAdjacentHTML('beforeend','<i class="wantflag"></i>');if(!want&&wf)wf.remove();
     }
     el.querySelectorAll('.box').forEach(b=>b.setAttribute('aria-pressed',seen));
-    el.querySelectorAll('.pill.seen').forEach(b=>{b.setAttribute('aria-pressed',seen);b.lastChild.textContent=seen?'Seen':'Mark seen'});
-    el.querySelectorAll('.pill.want').forEach(b=>{b.setAttribute('aria-pressed',want);b.lastChild.textContent=want?'On watchlist':'Want to see'});
+    el.querySelectorAll('.pill.seen').forEach(b=>{b.setAttribute('aria-pressed',seen);b.lastChild.textContent=SEENL(it,seen)});
+    el.querySelectorAll('.pill.want').forEach(b=>{b.setAttribute('aria-pressed',want);b.lastChild.textContent=WANTL(it,want)});
   });
   updateTally();updateCerCounts();
 }
@@ -674,20 +749,29 @@ function refreshMarks(k){
 /* ---------- views ---------- */
 const VIEWS={all:'All titles',imdb:'IMDb Top 250',oscars:'Awards',foryou:'For you',lists:'Lists & backup'};
 function applyMode(){
-  document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.mode===S.mode));
-  $('#awtab').textContent=S.mode==='movie'?'Oscars':S.mode==='series'?'Emmys':'Awards';
-  $('#q').placeholder=S.mode==='movie'?'Title, director, actor, studio…':S.mode==='series'?'Title, creator, actor, network…':'Title, person, company…';
+  document.querySelectorAll('.modeseg [data-mode]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.mode==='mix'?S.mix:S.modes.includes(b.dataset.mode)));
+  document.documentElement.classList.toggle('mixing',S.mix);
+  const one=isMix()?null:S.modes[0];
+  $('#awtab').textContent=one==='movie'?'Oscars':one==='series'?'Emmys':one==='game'?'GOTY':'Awards';
+  $('#q').placeholder=one==='movie'?'Title, director, actor, studio…':one==='series'?'Title, creator, actor, network…':one==='game'?'Game, studio, director, platform…':'Title, person, company…';
 }
 function setMode(m){
-  S.mode=m;store.set('rl.mode',m);
-  if(m!=='both')S.sub=m;
-  const okList=id=>{const l=S.lists.find(x=>x.id===id);return l&&(m==='both'||l.media===m)};
+  const has=x=>Object.values(S.items).some(i=>i.media===x);
+  if(m==='mixall'){S.mix=true;S.modes=CORE.filter(has)}
+  else if(m==='mix'){S.mix=!S.mix;if(S.mix){S.modes=CORE.filter(x=>S.modes.includes(x)||has(x))}else S.modes=[S.modes.includes(S.sub)?S.sub:S.modes[0]]}
+  else if(S.mix){const i=S.modes.indexOf(m);if(i<0)S.modes.push(m);else if(S.modes.length>1)S.modes.splice(i,1);else{toast('Keep at least one on');return}}
+  else S.modes=[m];
+  S.modes=CORE.filter(x=>S.modes.includes(x));
+  if(!S.modes.includes(S.sub))S.sub=S.modes[0];
+  store.set('rl.modes',S.modes);store.set('rl.mix',S.mix);store.set('rl.sub',S.sub);
+  const okList=id=>{const l=S.lists.find(x=>x.id===id);return l&&(S.modes.includes(l.media)||!l.builtin)};
   S.f.src=S.f.src.filter(okList);
-  if(m==='movie'){S.f.formats=[];S.f.tvst=[]}
-  if(SORT_SCOPE[S.f.sort]&&m!=='both'&&SORT_SCOPE[S.f.sort]!==m)S.f.sort='auto';
+  if(!S.modes.includes('series')){S.f.formats=[];S.f.tvst=[]}
+  if(!S.modes.includes('game')){S.f.plat=[];S.f.franchise=''}
+  if(SORT_SCOPE[S.f.sort]&&!S.modes.includes(SORT_SCOPE[S.f.sort]))S.f.sort='auto';
   applyMode();S.shown=90;render();scrollTo(0,0);
 }
-const subSeg=()=>S.mode==='both'?`<div class="seg" role="group" aria-label="Movies or TV"><button type="button" data-sub="movie" aria-pressed="${S.sub==='movie'}">Movies</button><button type="button" data-sub="series" aria-pressed="${S.sub==='series'}">TV</button></div>`:'';
+const subSeg=()=>isMix()?`<div class="seg" role="group" aria-label="Which list">${S.modes.map(m=>`<button type="button" data-sub="${m}" aria-pressed="${S.sub===m}">${{movie:'Movies',series:'TV',game:'Games'}[m]}</button>`).join('')}</div>`:'';
 function route(){
   const v=(location.hash||'#all').slice(1);
   const prev=S.view;S.view=VIEWS[v]?v:'all'; S.shown=90;
@@ -699,17 +783,23 @@ function route(){
 }
 function statusChips(pool){
   const n=st=>pool.filter(i=>st==='all'||(st==='seen'?isSeen(i.key):st==='unseen'?!isSeen(i.key):st==='watching'?isWatching(i.key):isWant(i.key))).length;
-  const tvOn=S.mode!=='movie'&&pool.some(i=>i.media==='series');
-  $('#statuschips').innerHTML=[['all','All'],['unseen','Not seen'],...(tvOn?[['watching','Watching']]:[]),['seen','Seen'],['want','Want to see']]
-    .map(([k,l])=>`<button type="button" class="chip" data-st="${k}" aria-pressed="${S.f.status===k}">${l}<span class="ct">${n(k)}</span></button>`).join('');
+  const tvOn=S.modes.includes('series')&&pool.some(i=>i.media==='series'),gOn=S.modes.includes('game')&&pool.some(i=>i.media==='game');
+  const n2=st=>st==='none'?pool.filter(i=>!isSeen(i.key)&&!isWatching(i.key)).length:st==='full'?pool.filter(i=>gLevel(i.key)===3).length:n(st);
+  const chips=S.mode==='game'?[['all','All'],['none','Unplayed'],['watching','Played'],['seen','Finished'],['full','100%'],['want','Want to play']]
+    :[['all','All'],['unseen',isMix()?'Not done':'Not seen'],...(tvOn||gOn?[['watching',tvOn&&gOn?'In progress':tvOn?'Watching':'Played']]:[]),['seen',isMix()?'Done':'Seen'],...(gOn?[['full','100%']]:[]),['want','Want to see']];
+  $('#statuschips').innerHTML=chips
+    .map(([k,l])=>`<button type="button" class="chip" data-st="${k}" aria-pressed="${S.f.status===k}">${l}<span class="ct">${n2(k)}</span></button>`).join('');
   const c=activeFilterCount();$('#fcount').hidden=!c;$('#fcount').textContent=c;
 }
 function tallyHTML(){
   const L=id=>S.lists.find(l=>l.id===id);
   const t=(l,label,gold)=>{if(!l)return '';const s=l.keys.filter(isSeen).length,n=l.keys.length;return `<div class="tile${gold?' gold':''}"><div class="k">${label}</div><div class="v" data-tally="${l.id}">${s}<small> / ${n}</small></div><div class="bar"><i style="width:${n?s/n*100:0}%"></i></div></div>`};
-  if(S.mode==='series')return `<div class="tally" id="tally">${t(L('imdbtv'),'Top 250 TV')}${t(L('emw'),'Emmy winners',1)}${t(L('emn'),'Emmy noms',1)}</div>`;
-  if(S.mode==='both'){const aw=L('bpw')&&L('emw')?{id:'aww',keys:[...L('bpw').keys,...L('emw').keys]}:null;return `<div class="tally" id="tally">${t(L('imdb'),'Top 250 films')}${t(L('imdbtv'),'Top 250 TV')}${t(aw,'Award wins',1)}</div>`}
-  return `<div class="tally" id="tally">${t(L('imdb'),'Top 250')}${t(L('bpw'),'BP winners',1)}${t(L('bpn'),'BP nominees',1)}</div>`;
+  const TOP={movie:['imdb','Top 250'],series:['imdbtv','Top 250 TV'],game:['topg','Top 250 games']};
+  const AW={movie:['bpw','BP winners','bpn','BP nominees'],series:['emw','Emmy winners','emn','Emmy noms'],game:['gotyw','GOTY winners','gotyn','GOTY noms']};
+  if(!isMix()){const m=S.modes[0];if(!TOP[m])return '';return `<div class="tally" id="tally">${t(L(TOP[m][0]),TOP[m][1])}${t(L(AW[m][0]),AW[m][1],1)}${t(L(AW[m][2]),AW[m][3],1)}</div>`}
+  const short={movie:'Top films',series:'Top TV',game:'Top games'};
+  const aw={id:'aww',keys:S.modes.flatMap(m=>L(AW[m][0])?.keys||[])};
+  return `<div class="tally ${S.modes.length===3?'t4':'t3m'}" id="tally">${S.modes.map(m=>t(L(TOP[m][0]),short[m])).join('')}${t(aw,'Wins',1)}</div>`;
 }
 function updateTally(){
   const el=$('#tally');if(el)el.outerHTML=tallyHTML();
@@ -738,37 +828,47 @@ function fyOpts(i){
 }
 function poolFor(v){
   const all=Object.values(S.items).filter(modeOK);
-  const sub=S.mode==='both'?S.sub:S.mode;
-  if(v==='imdb')return all.filter(i=>i.imdbRank&&i.media===sub);
-  if(v==='oscars')return all.filter(i=>sub==='series'?i.emmy:i.bp);
+  const sub=isMix()?S.sub:S.modes[0];
+  if(v==='imdb')return all.filter(i=>rankOf(i)&&i.media===sub);
+  if(v==='oscars')return all.filter(i=>sub==='series'?i.emmy:sub==='game'?i.goty:i.bp);
   if(v==='foryou'){forYou();return Object.keys(S._hits).map(k=>S.items[k]).filter(i=>i&&modeOK(i))}
-  return all.filter(i=>!i.extra||S.f.person||S.f.company||S.f.q||S.f.src.includes('recs')||S.f.src.includes('recstv')||S.marks[i.key]);
+  return all.filter(i=>!i.extra||S.f.person||S.f.company||S.f.franchise||S.f.q||S.f.src.some(x=>x.startsWith('recs'))||S.marks[i.key]);
 }
-function otherModeCount(test){if(S.mode==='both')return 0;return Object.values(S.items).filter(i=>!modeOK(i)&&(i.media==='movie'||i.media==='series')&&test(i)).length}
-const otherLink=n=>n?`<button type="button" class="linkbtn" data-mode="both">+${n} ${S.mode==='movie'?'TV':'film'} title${n>1?'s':''}: show both</button>`:'';
+function otherModeCount(test){return Object.values(S.items).filter(i=>!modeOK(i)&&CORE.includes(i.media)&&test(i)).length}
+const otherLink=n=>n?`<button type="button" class="linkbtn" data-mode="mixall">+${n} in other media: show all</button>`:'';
 function companyHTML(pool){
   const n=norm(S.f.company),r={p:0,d:0,n:0};
-  for(const i of pool){if((i.studios||[]).some(x=>norm(x)===n))r.p++;if(norm(i.distributor||'')===n)r.d++;if((i.network||[]).some(x=>norm(x)===n))r.n++}
+  r.dv=0;r.pb=0;for(const i of pool){if((i.studios||[]).some(x=>norm(x)===n))r.p++;if(norm(i.distributor||'')===n)r.d++;if((i.network||[]).some(x=>norm(x)===n))r.n++;if((i.developers||[]).some(x=>norm(x)===n))r.dv++;if((i.publishers||[]).some(x=>norm(x)===n))r.pb++}
   const seen=pool.filter(i=>isSeen(i.key)).length;
-  const roles=[r.p&&`<span>Production <b>${r.p}</b></span>`,r.d&&`<span>Distribution <b>${r.d}</b></span>`,r.n&&`<span>Network <b>${r.n}</b></span>`].filter(Boolean).join('');
-  return `<div class="phead"><div style="min-width:0"><div class="eyebrow">Studio, distributor or network</div><h2>${esc(S.f.company)}</h2><div class="proles">${roles}</div><div class="proles" style="margin-top:4px"><span><b>${seen}</b> of ${pool.length} seen</span>${otherLink(otherModeCount(i=>i._cos?.has(n)))}</div></div><button type="button" class="x" id="clearcompany" aria-label="Show all companies again"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>`;
+  const roles=[r.p&&`<span>Production <b>${r.p}</b></span>`,r.d&&`<span>Distribution <b>${r.d}</b></span>`,r.n&&`<span>Network <b>${r.n}</b></span>`,r.dv&&`<span>Developer <b>${r.dv}</b></span>`,r.pb&&`<span>Publisher <b>${r.pb}</b></span>`].filter(Boolean).join('');
+  return `<div class="phead"><div style="min-width:0"><div class="eyebrow">Company</div><h2>${esc(S.f.company)}</h2><div class="proles">${roles}</div><div class="proles" style="margin-top:4px"><span><b>${seen}</b> of ${pool.length} seen</span>${otherLink(otherModeCount(i=>i._cos?.has(n)))}</div></div><button type="button" class="x" id="clearcompany" aria-label="Show all companies again"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>`;
 }
 function goCompany(name){
   closeSheet(true);
-  S.f={...S.f,company:name,person:'',q:'',status:'all',src:[],genre:[],decade:[],flags:[],media:[],formats:[],tvst:[],sort:'auto'};$('#q').value='';
+  S.f={...S.f,company:name,person:'',franchise:'',q:'',status:'all',src:[],genre:[],decade:[],flags:[],media:[],formats:[],tvst:[],plat:[],sort:'auto'};$('#q').value='';
+  if(location.hash!=='#all')location.hash='#all';else route();
+}
+function franchiseHTML(pool){
+  const seen=pool.filter(i=>isSeen(i.key)).length;
+  return `<div class="phead"><div style="min-width:0"><div class="eyebrow">Series</div><h2>${esc(S.f.franchise)}</h2><div class="proles"><span><b>${pool.length}</b> game${pool.length===1?'':'s'} in your app</span><span><b>${seen}</b> finished</span></div></div><button type="button" class="x" id="clearfranchise" aria-label="Show all games again"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>`;
+}
+function goFranchise(name){
+  closeSheet(true);
+  if(!S.modes.includes('game')){S.modes=S.mix?[...S.modes,'game']:['game'];S.modes=CORE.filter(x=>S.modes.includes(x));store.set('rl.modes',S.modes);applyMode()}
+  S.f={...S.f,franchise:name,company:'',person:'',q:'',status:'all',src:[],genre:[],decade:[],flags:[],media:[],formats:[],tvst:[],plat:[],sort:'auto'};$('#q').value='';
   if(location.hash!=='#all')location.hash='#all';else route();
 }
 function personHTML(pool){
   const n=norm(S.f.person),r={d:0,w:0,c:0};
   const has=a=>(a||[]).some(x=>norm(pn(x))===n);
-  r.cr=0;for(const i of pool){if(has(i.directors))r.d++;if(has(i.creators))r.cr++;if(has(i.writers))r.w++;if(has(i.cast))r.c++}
+  r.cr=0;r.cp=0;for(const i of pool){if(has(i.directors))r.d++;if(has(i.creators))r.cr++;if(has(i.writers))r.w++;if(has(i.cast))r.c++;if(has(i.composers))r.cp++}
   const seen=pool.filter(i=>isSeen(i.key)).length;
-  const roles=[r.d&&`<span>Director <b>${r.d}</b></span>`,r.cr&&`<span>Creator <b>${r.cr}</b></span>`,r.w&&`<span>Writer <b>${r.w}</b></span>`,r.c&&`<span>Cast <b>${r.c}</b></span>`].filter(Boolean).join('');
-  return `<div class="phead"><div style="min-width:0"><div class="eyebrow">${S.mode==='series'?'Their shows in your app':S.mode==='both'?'Their work in your app':'Filmography in your app'}</div><h2>${esc(S.f.person)}</h2><div class="proles">${roles}</div><div class="proles" style="margin-top:4px"><span><b>${seen}</b> of ${pool.length} seen</span>${otherLink(otherModeCount(i=>i._people?.has(n)))}<a href="https://en.wikipedia.org/wiki/Special:Search?search=${encodeURIComponent(S.f.person)}" target="_blank" rel="noopener" style="color:var(--brass);font-weight:600;text-decoration:none">Wikipedia</a></div></div><button type="button" class="x" id="clearperson" aria-label="Show everyone again"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>`;
+  const roles=[r.d&&`<span>Director <b>${r.d}</b></span>`,r.cr&&`<span>Creator <b>${r.cr}</b></span>`,r.w&&`<span>Writer <b>${r.w}</b></span>`,r.c&&`<span>Cast <b>${r.c}</b></span>`,r.cp&&`<span>Composer <b>${r.cp}</b></span>`].filter(Boolean).join('');
+  return `<div class="phead"><div style="min-width:0"><div class="eyebrow">${S.mode==='series'?'Their shows in your app':S.mode==='game'?'Their games in your app':S.mode==='movie'?'Filmography in your app':'Their work in your app'}</div><h2>${esc(S.f.person)}</h2><div class="proles">${roles}</div><div class="proles" style="margin-top:4px"><span><b>${seen}</b> of ${pool.length} seen</span>${otherLink(otherModeCount(i=>i._people?.has(n)))}<a href="https://en.wikipedia.org/wiki/Special:Search?search=${encodeURIComponent(S.f.person)}" target="_blank" rel="noopener" style="color:var(--brass);font-weight:600;text-decoration:none">Wikipedia</a></div></div><button type="button" class="x" id="clearperson" aria-label="Show everyone again"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>`;
 }
 function goPerson(name){
   closeSheet(true);
-  S.f={...S.f,person:name,company:'',q:'',status:'all',src:[],genre:[],decade:[],flags:[],media:[],formats:[],tvst:[],sort:'auto'};$('#q').value='';
+  S.f={...S.f,person:name,company:'',franchise:'',q:'',status:'all',src:[],genre:[],decade:[],flags:[],media:[],formats:[],tvst:[],plat:[],sort:'auto'};$('#q').value='';
   if(location.hash!=='#all')location.hash='#all';else route();
 }
 function render(){
@@ -776,12 +876,12 @@ function render(){
   if(S.view==='lists'){m.innerHTML=listsHTML();return}
   const pool=poolFor(S.view).filter(i=>passes(i,true));
   statusChips(pool);
-  const ph=S.f.person?personHTML(pool):S.f.company?companyHTML(pool):'';
-  const sub=S.mode==='both'?S.sub:S.mode;
-  if(S.view==='oscars'){m.innerHTML=ph+(sub==='series'?emmysHTML():oscarsHTML());lazyPosters(pool.filter(i=>!i.imdb&&!i.custom&&i.media!=='series').slice(0,40).map(i=>i.key));tvEnqueue([...document.querySelectorAll('#main [data-k]')].map(e=>e.dataset.k),true);setTimeout(()=>posterFetcher(),300);return}
+  const ph=S.f.person?personHTML(pool):S.f.company?companyHTML(pool):S.f.franchise?franchiseHTML(pool):'';
+  const sub=isMix()?S.sub:S.modes[0];
+  if(S.view==='oscars'){m.innerHTML=ph+(sub==='series'?emmysHTML():sub==='game'?gotyHTML():oscarsHTML());lazyPosters(pool.filter(i=>!i.imdb&&!i.custom&&i.media!=='series').slice(0,40).map(i=>i.key));tvEnqueue([...document.querySelectorAll('#main [data-k]')].map(e=>e.dataset.k),true);setTimeout(()=>posterFetcher(),300);return}
   const fy=S.view==='foryou';
-  const res=sorted(pool.filter(i=>passes(i)),(S.f.person||S.f.company)?'oldest':fy?'hits':S.view==='imdb'?'rank':'popular');
-  const head=(ph||(fy?forYouHTML(pool):tallyHTML()))+(S.view==='imdb'?subSeg():'')+`<div class="resinfo"><span>${res.length} ${res.length===1?'title':'titles'}${S.f.sort!=='auto'?' · '+SORTS[S.f.sort]:''}</span>${activeFilterCount()||S.f.q||S.f.person||S.f.company||S.f.status!=='all'?'<button type="button" id="clearall">Clear filters</button>':''}</div>`;
+  const res=sorted(pool.filter(i=>passes(i)),(S.f.person||S.f.company||S.f.franchise)?'oldest':fy?'hits':S.view==='imdb'?'rank':'popular');
+  const head=(ph||(fy?forYouHTML(pool):tallyHTML()))+(S.view==='imdb'?subSeg():'')+`<div class="resinfo"><span>${res.length} ${res.length===1?'title':'titles'}${S.f.sort!=='auto'?' · '+SORTS[S.f.sort]:''}</span>${activeFilterCount()||S.f.q||S.f.person||S.f.company||S.f.franchise||S.f.status!=='all'?'<button type="button" id="clearall">Clear filters</button>':''}</div>`;
   if(fy&&!S._seeds){m.innerHTML=head+`<div class="empty"><h3>Nothing to go on yet</h3><p>Mark titles you've seen in All, Top 250 or the awards tab. Their recommendations collect here, ranked by how often they come up.</p></div>`;return}
   if(!res.length){m.innerHTML=head+`<div class="empty"><h3>Nothing here</h3><p>${fy&&S.f.status==='unseen'?'You have seen everything your seen titles recommend. Impressive.':S.f.status==='want'?'Tap “Want to see” on any title to build your watchlist.':'No titles match these filters.'}</p></div>`;return}
   m.innerHTML=head+`<div class="grid">${res.slice(0,S.shown).map(i=>cardHTML(i,{rank:S.view==='imdb'||S.f.sort==='rank',...(fy?fyOpts(i):{})})).join('')}</div>`+(res.length>S.shown?`<button type="button" class="more" id="more">Show more (${res.length-S.shown} left)</button>`:'');
@@ -814,37 +914,40 @@ function oscarsHTML(){
   if(!shown)out+=`<div class="empty"><h3>Nothing here</h3><p>No Best Picture races match these filters.</p></div>`;
   return out;
 }
-function emmysHTML(){
-  let out=tallyHTML()+subSeg()+`<div class="seg" role="group" aria-label="Emmy view"><button type="button" data-om="races" aria-pressed="${S.oscarMode==='races'}">Full races</button><button type="button" data-om="winners" aria-pressed="${S.oscarMode==='winners'}">Winners only</button></div>
-    <div class="chips" style="margin-top:10px" role="group" aria-label="Emmy categories">${Object.entries(EMCAT).map(([c,l])=>`<button type="button" class="chip" data-emcat="${c}" aria-pressed="${S.emCats.includes(c)}">${l} series</button>`).join('')}</div>`;
-  if(!S.awards.length)return out+`<div class="empty"><h3>No Emmy data</h3><p>The TV data didn't load. Reopen the app with a connection.</p></div>`;
+function racesHTML(c){
+  let out=tallyHTML()+subSeg()+`<div class="seg" role="group" aria-label="Award view"><button type="button" data-om="races" aria-pressed="${S.oscarMode==='races'}">Full races</button><button type="button" data-om="winners" aria-pressed="${S.oscarMode==='winners'}">Winners only</button></div>
+    <div class="chips" style="margin-top:10px" role="group" aria-label="Award categories">${Object.entries(c.cats).map(([k,l])=>`<button type="button" class="chip" data-${c.attr}="${k}" aria-pressed="${c.sel.includes(k)}">${l}</button>`).join('')}</div>`;
+  if(!c.list.length)return out+`<div class="empty"><h3>No award data</h3><p>The data didn't load. Reopen the app with a connection.</p></div>`;
   let shown=0;
-  S.awards.forEach((c,idx)=>{
-    if(shown<0)return;
-    if(!S.emCats.includes(c.cat))return;
-    const noms=[c.winner,...c.nominees].map(k=>S.items[k]).filter(Boolean);
-    const vis=noms.filter(i=>passes(i)),win=S.items[c.winner];
+  c.list.forEach((a,idx)=>{
+    if(shown<0||!c.sel.includes(a.cat))return;
+    const noms=[a.winner,...a.nominees].map(k=>S.items[k]).filter(Boolean);
+    const vis=noms.filter(i=>passes(i)),win=S.items[a.winner];
     if(S.oscarMode==='winners'?!(win&&passes(win)):!vis.length)return;
     if(shown>=Math.max(36,S.shown*0.4)){out+=`<button type="button" class="more" id="more">Show earlier years</button>`;shown=-1;return}
     shown++;
-    const others=vis.filter(i=>i.key!==c.winner),s=noms.filter(i=>isSeen(i.key)).length;
-    out+=`<section class="cer"><div class="cerhead"><h2>${c.year}</h2><span class="sub">${esc(c.label||'Outstanding '+EMCAT[c.cat]+' Series')} · ${ord(c.ceremony)} Emmys</span><span class="pc${s===noms.length?' full':''}" data-awpc="${idx}">${s}/${noms.length} seen</span></div>`;
-    if(win)out+=winnerHTML(win,c.label||'Outstanding '+EMCAT[c.cat]+' Series',[...(win.network||[]),...(win.creators||[]).slice(0,1)].join(' · '));
+    const others=vis.filter(i=>i.key!==a.winner),sn=noms.filter(i=>isSeen(i.key)).length;
+    out+=`<section class="cer"><div class="cerhead"><h2>${a.year}</h2><span class="sub">${esc(c.sub(a))}</span><span class="pc${sn===noms.length?' full':''}" data-awpc="${c.id}:${idx}">${sn}/${noms.length} ${c.done}</span></div>`;
+    if(win)out+=winnerHTML(win,c.eyebrow(a),c.meta(win));
     if(S.oscarMode==='races'&&others.length)out+=`<div class="noms">${others.map(i=>cardHTML(i,{noNom:true})).join('')}</div>`;
     out+='</section>';
   });
-  if(!shown)out+=`<div class="empty"><h3>Nothing here</h3><p>No Emmy races match these filters.</p></div>`;
+  if(!shown)out+=`<div class="empty"><h3>Nothing here</h3><p>No races match these filters.</p></div>`;
   return out;
 }
+const emmysHTML=()=>racesHTML({id:'t',list:S.awards,cats:Object.fromEntries(Object.entries(EMCAT).map(([k,l])=>[k,l+' series'])),sel:S.emCats,attr:'emcat',done:'seen',
+  sub:a=>`${a.label||'Outstanding '+EMCAT[a.cat]+' Series'} · ${ord(a.ceremony)} Emmys`,eyebrow:a=>a.label||'Outstanding '+EMCAT[a.cat]+' Series',meta:w=>[...(w.network||[]),...(w.creators||[]).slice(0,1)].join(' · ')});
+const gotyHTML=()=>racesHTML({id:'g',list:S.gawards,cats:GCAT,sel:S.gCats,attr:'gcat',done:'finished',
+  sub:a=>`Game of the Year · ${ord(a.ceremony)} ${GCATLONG[a.cat]}${a.ceremonyYear&&a.ceremonyYear!==a.year?' ('+a.ceremonyYear+')':''}`,eyebrow:a=>`${GCAT[a.cat]} Game of the Year`,meta:w=>[...(w.developers||[]).slice(0,1),...(w.platforms||[]).filter(p=>p.orig).map(p=>p.p).slice(0,3)].join(' · ')});
 function winnerHTML(win,eyebrow,meta){
   return `<div class="winner" data-k="${esc(win.key)}"><div class="card${isSeen(win.key)?' is-seen':''}" data-k="${esc(win.key)}"><div class="pwrap"><button type="button" class="open" aria-label="${esc(win.title)} details" style="all:unset;position:absolute;inset:0;cursor:pointer">${posterHTML(win)}</button>${isWant(win.key)?'<i class="wantflag"></i>':''}<span class="badges"></span><button type="button" class="mark" aria-pressed="${isSeen(win.key)}" aria-label="Seen ${esc(win.title)}"><span>${CHECK}</span></button></div></div>
-      <div class="info"><div class="eyebrow">${esc(eyebrow)}</div><h3><button type="button" class="open">${esc(win.title)}</button></h3><div class="meta">${esc([meta,win.imdbRank?`IMDb #${win.imdbRank}`:''].filter(Boolean).join(' · '))}</div>
-      <div class="wbtns"><button type="button" class="pill seen" aria-pressed="${isSeen(win.key)}">${CHECK}<span>${isSeen(win.key)?'Seen':'Mark seen'}</span></button><button type="button" class="pill want" aria-pressed="${isWant(win.key)}"><span>${isWant(win.key)?'On watchlist':'Want to see'}</span></button></div></div></div>`;
+      <div class="info"><div class="eyebrow">${esc(eyebrow)}</div><h3><button type="button" class="open">${esc(win.title)}</button></h3><div class="meta">${esc([meta,win.imdbRank?`IMDb #${win.imdbRank}`:win.topRank?`Top 250 #${win.topRank}`:''].filter(Boolean).join(' · '))}</div>
+      <div class="wbtns"><button type="button" class="pill seen" aria-pressed="${isSeen(win.key)}">${CHECK}<span>${SEENL(win,isSeen(win.key))}</span></button><button type="button" class="pill want" aria-pressed="${isWant(win.key)}"><span>${WANTL(win,isWant(win.key))}</span></button></div></div></div>`;
 }
 function updateCerCounts(){
   document.querySelectorAll('[data-awpc]').forEach(el=>{
-    const c=S.awards[+el.dataset.awpc];if(!c)return;const ks=[c.winner,...c.nominees].filter(k=>S.items[k]);const s=ks.filter(isSeen).length;
-    el.textContent=`${s}/${ks.length} seen`;el.classList.toggle('full',s===ks.length);
+    const [g,ix]=el.dataset.awpc.split(':');const c=(g==='g'?S.gawards:S.awards)[+ix];if(!c)return;const ks=[c.winner,...c.nominees].filter(k=>S.items[k]);const s=ks.filter(isSeen).length;
+    el.textContent=`${s}/${ks.length} ${g==='g'?'finished':'seen'}`;el.classList.toggle('full',s===ks.length);
   });
   document.querySelectorAll('[data-cerpc]').forEach(el=>{
     const c=S.ceremonies.find(x=>x.ceremony==el.dataset.cerpc);const s=c.nominees.filter(isSeen).length;
@@ -888,16 +991,98 @@ function statusTxt(it){
   if(it.status==='concluded')return it.format==='miniseries'?'Complete <span class="fmtdesc">(limited series)</span>':'Concluded <span class="fmtdesc">— ended as planned</span>';
   return '—';
 }
+function franchiseBtn(n){return n?`<button type="button" class="pname" data-franchise="${esc(n)}">${esc(n)}</button>`:'—'}
+function gameRaceSection(it){
+  const races=S.gawards.map((a,i)=>[a,i]).filter(([a])=>a.winner===it.key||a.nominees.includes(it.key));
+  if(!races.length)return '';
+  const pick=(races.find(([a])=>a.winner===it.key)||races[0])[1];
+  return `<div class="sec"><h4>Game of the Year races<small>${races.length} nomination${races.length>1?'s':''}</small></h4>
+    <div class="chips" style="flex-wrap:wrap;margin-bottom:8px">${races.map(([a,i])=>`<button type="button" class="chip" data-race="g:${i}" aria-pressed="${i===pick}">${a.year} ${GCAT[a.cat]}${a.winner===it.key?' ★':''}</button>`).join('')}</div>
+    <div class="race" id="racebox">${raceRows(S.gawards[pick],it.key)}</div></div>`;
+}
+function playersTxt(p){
+  if(!p)return '—';const o=[];
+  if(p.single)o.push('Single-player');
+  if(p.localCoop)o.push(`Local co-op${p.localMax>1?` (${p.localMax})`:''}`);else if(p.localMax>1)o.push(`Local multiplayer (${p.localMax})`);
+  if(p.onlineCoop)o.push(`Online co-op${p.onlineMax>1?` (${p.onlineMax})`:''}`);else if(p.onlineMax>1)o.push(`Online multiplayer (${p.onlineMax})`);
+  if(p.splitScreen)o.push('Split-screen');if(p.pvp)o.push('PvP');if(p.crossplay)o.push('Crossplay');
+  return o.map(esc).join(' · ')||'—';
+}
+function gameDetail(it){
+  const k=it.key,lv=gLevel(k),want=isWant(k);
+  const chips=[];
+  if(it.extra)chips.push(`<span class="tag" style="background:var(--seen);color:var(--seen-ink)">Not on your lists</span>`);
+  if(isMix())chips.push('<span class="tag gamet">Game</span>');
+  if(it.topRank)chips.push(`<span class="tag">Top 250 #${it.topRank}</span>`);
+  if(it.rating)chips.push(`<span class="tag line">★ ${it.rating} / 5</span>`);
+  if(it.goty?.wins)chips.push(`<span class="tag gold">${it.goty.wins} Game of the Year award${it.goty.wins>1?'s':''}</span>`);
+  else if(it.goty?.noms)chips.push(`<span class="tag line">GOTY nominee</span>`);
+  if(it.remakeOf)chips.push(`<span class="tag">Remake</span>`);
+  if(it.model==='free-to-play')chips.push(`<span class="tag warn">Free-to-play</span>`);
+  if(it.liveService)chips.push(`<span class="tag warn">Live service</span>`);
+  if(it.mobileOnly)chips.push(`<span class="tag warn">Mobile</span>`);
+  if(it.onlineShutDown)chips.push(`<span class="tag warn">Online shut down</span>`);
+  (it.genres||[]).forEach(g=>chips.push(`<span class="tag line">${esc(g)}</span>`));
+  const orig=(it.platforms||[]).filter(p=>p.orig).map(p=>p.p);
+  const plats=[...(it.platforms||[])].sort((a,b)=>(a.y||0)-(b.y||0)||PLAT_ORDER.indexOf(a.p)-PLAT_ORDER.indexOf(b.p));
+  const L=it.length||{};
+  const lenTxt=[L.main&&`Main story ~${L.main} h`,L.extras&&`Main + extras ~${L.extras} h`,L.complete&&`100% ~${L.complete} h`].filter(Boolean).join(' · ')||'—';
+  const orig2=it.remakeOf?Object.values(S.items).find(o=>o.media==='game'&&norm(o.title)===norm(it.remakeOf.title)&&Math.abs((o.year||0)-(it.remakeOf.year||0))<=1&&o.key!==k):null;
+  const remakes=Object.values(S.items).filter(o=>o.media==='game'&&o.remakeOf&&norm(o.remakeOf.title)===norm(it.title)&&Math.abs((o.remakeOf.year||0)-(it.year||0))<=1);
+  let h=`<div data-k="${esc(k)}"><div class="dhead"><div class="pwrap">${posterHTML(it)}</div><div style="min-width:0">
+    <h2 class="dtitle">${esc(it.title)}</h2>
+    <div class="dsub">${esc(it.year||'')}${(it.developers||[]).length?` · ${esc(it.developers[0])}`:''}${orig.length?` · ${esc(orig.join(', '))}`:''}</div>
+    <div class="dchips">${chips.join('')}</div></div></div>
+    <div class="lvseg" role="group" aria-label="Your progress">${[1,2,3].map(n=>`<button type="button" data-lv="${n}" aria-pressed="${lv===n}">${['','Played','Finished','100%'][n]}</button>`).join('')}</div>
+    <div class="dact" style="margin-top:8px"><button type="button" class="pill want" aria-pressed="${want}"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M6 3h12v18l-6-4.5L6 21z"/></svg><span>${WANTL(it,want)}</span></button></div>
+    ${it.plot?`<p class="plot">${esc(it.plot)}</p>`:''}
+    <dl class="facts">
+      <dt>Developer</dt><dd>${companies(it.developers)}</dd>
+      <dt>Publisher</dt><dd>${companies(it.publishers)}</dd>
+      ${(it.directors||[]).length?`<dt>Director</dt><dd>${people(it.directors)}</dd>`:''}
+      ${(it.writers||[]).length?`<dt>Writers</dt><dd>${people(it.writers)}</dd>`:''}
+      ${(it.composers||[]).length?`<dt>Music</dt><dd>${people(it.composers)}</dd>`:''}
+      ${(it.cast||[]).length?`<dt>Cast</dt><dd>${people(it.cast)}</dd>`:''}
+      <dt>Series</dt><dd>${franchiseBtn(it.series)}</dd>
+      <dt>Released</dt><dd>${esc(it.year||'—')}${orig.length?` on ${esc(orig.join(', '))}`:''}</dd>
+      <dt>Platforms</dt><dd><div class="platchips">${plats.map(p=>`<span class="tag line" title="${esc(p.y||'')}">${esc(p.p)}${p.y&&p.y!==it.year?` <span style="opacity:.6">${p.y}</span>`:''}</span>`).join('')||'—'}</div></dd>
+      ${(it.versions||[]).length?`<dt>Versions</dt><dd>${it.versions.map(v=>`<div><b>${esc((v.type||'').replace(/^./,c=>c.toUpperCase()))}</b> · ${esc(v.title||'')}${v.year?` (${v.year})`:''}${(v.platforms||[]).length?` <span class="fmtdesc">· ${esc(v.platforms.join(', '))}</span>`:''}</div>`).join('')}</dd>`:''}
+      ${it.remakeOf?`<dt>Remake of</dt><dd>${orig2?`<button type="button" class="pname" data-go="${esc(orig2.key)}">${esc(orig2.title)}</button> (${orig2.year})`:`${esc(it.remakeOf.title)}${it.remakeOf.year?` (${it.remakeOf.year})`:''}`}</dd>`:''}
+      ${remakes.length?`<dt>Remade as</dt><dd>${remakes.map(o=>`<button type="button" class="pname" data-go="${esc(o.key)}">${esc(o.title)}</button> (${o.year})`).join(', ')}</dd>`:''}
+      <dt>Players</dt><dd>${playersTxt(it.players)}</dd>
+      ${it.players?.onlineMax||it.onlineShutDown?`<dt>Online</dt><dd>${it.onlineShutDown?'<span style="color:var(--want);font-weight:700">Servers shut down</span>':`Up to ${it.players.onlineMax} players`}</dd>`:''}
+      <dt>Length</dt><dd>${lenTxt}${L.main?' <span class="fmtdesc">(estimates)</span>':''}</dd>
+      <dt>Style</dt><dd>${esc([it.perspective,it.openWorld?'open world':''].filter(Boolean).join(', ')||'—')}</dd>
+      <dt>Set in</dt><dd>${settingTxtOf(it)}</dd>
+      <dt>True story</dt><dd>${it.trueStory?'<span class="yes">Yes</span>':'No'}</dd>
+      <dt>Historical</dt><dd>${it.historical?'<span class="yes">Yes, a period piece</span>':'No'}</dd>
+      <dt>Based on</dt><dd>${basedTxtOf(it)}</dd>
+      ${(it.dlc||[]).length?`<dt>Expansions</dt><dd>${esc(it.dlc.join(', '))}</dd>`:''}
+      ${it.bestWay?`<dt>Play it today</dt><dd>${esc(it.bestWay)}</dd>`:''}
+      ${it.languages?.length?`<dt>Language</dt><dd>${esc(it.languages.join(', '))}</dd>`:''}
+    </dl>`;
+  h+=gameRaceSection(it);
+  if(it.extra)h+=recFromHTML(it);
+  h+=recsSection(it);
+  h+=recordList('Game of the Year record',it.goty);
+  const wiki=S.posters[k]?.w,q=encodeURIComponent(it.title);
+  h+=`<div class="links"><a href="https://backloggd.com/search/games/${q}" target="_blank" rel="noopener">Backloggd</a><a href="https://howlongtobeat.com/?q=${q}" target="_blank" rel="noopener">HowLongToBeat</a><a href="https://en.wikipedia.org/wiki/${wiki?encodeURIComponent(wiki.replace(/ /g,'_')):'Special:Search?search='+encodeURIComponent(it.title+' '+(it.year||'')+' video game')}" target="_blank" rel="noopener">Wikipedia</a></div>`;
+  if(it.confidence&&it.confidence!=='high')h+=`<p class="note">Some details for this game are less certain. Check Backloggd or Wikipedia if something looks off.</p>`;
+  if(it.extra)h+=`<p class="note">This game isn't on the Top 250 or Game of the Year lists. Mark it and it stays in your All tab.</p>`;
+  h+='</div>';
+  openSheet(h,it.extra?'Recommended game':it.goty?.wins?'Game of the Year winner':it.goty?'GOTY nominee':it.topRank?'Top 250 games':'Game');
+  lazyPosters([k,...(S.recs?.[k]||[]).map(r=>r[0]),...S.gawards.filter(a=>a.winner===k||a.nominees.includes(k)).flatMap(a=>[a.winner,...a.nominees])].filter(Boolean));
+}
 function raceRows(a,cur){
   const ks=[a.winner,...a.nominees].filter(x=>S.items[x]);
-  return ks.map(x=>{const i=S.items[x];return `<div class="rrow${x===cur?' cur':''}" data-k="${esc(x)}"><div class="thumb">${posterHTML(i)}</div><button type="button" class="nm" data-go="${esc(x)}"><b>${esc(i.title)}</b><span>${x===a.winner?'<span style="color:var(--brass);font-weight:700">Winner</span>':'Nominee'}${(i.network||[]).length?' · '+esc(i.network[0]):''}</span></button><button type="button" class="box" aria-pressed="${isSeen(x)}" aria-label="Seen ${esc(i.title)}"><span>${CHECK}</span></button></div>`}).join('');
+  return ks.map(x=>{const i=S.items[x];return `<div class="rrow${x===cur?' cur':''}" data-k="${esc(x)}"><div class="thumb">${posterHTML(i)}</div><button type="button" class="nm" data-go="${esc(x)}"><b>${esc(i.title)}</b><span>${x===a.winner?'<span style="color:var(--brass);font-weight:700">Winner</span>':'Nominee'}${(i.network||[]).length?' · '+esc(i.network[0]):(i.developers||[]).length?' · '+esc(i.developers[0]):''}</span></button><button type="button" class="box" aria-pressed="${isSeen(x)}" aria-label="Seen ${esc(i.title)}"><span>${CHECK}</span></button></div>`}).join('');
 }
 function emmyRaceSection(it){
   const races=S.awards.map((a,i)=>[a,i]).filter(([a])=>a.winner===it.key||a.nominees.includes(it.key));
   if(!races.length)return '';
   const pick=(races.find(([a])=>a.winner===it.key)||races[0])[1];
   return `<div class="sec"><h4>Emmy races<small>Outstanding series · ${races.length} nomination${races.length>1?'s':''}</small></h4>
-    <div class="chips" style="flex-wrap:wrap;margin-bottom:8px">${races.map(([a,i])=>`<button type="button" class="chip" data-race="${i}" aria-pressed="${i===pick}">${a.year} ${EMCAT[a.cat]}${a.winner===it.key?' ★':''}</button>`).join('')}</div>
+    <div class="chips" style="flex-wrap:wrap;margin-bottom:8px">${races.map(([a,i])=>`<button type="button" class="chip" data-race="t:${i}" aria-pressed="${i===pick}">${a.year} ${EMCAT[a.cat]}${a.winner===it.key?' ★':''}</button>`).join('')}</div>
     <div class="race" id="racebox">${raceRows(S.awards[pick],it.key)}</div></div>`;
 }
 function recordList(title,rec){
@@ -908,7 +1093,7 @@ function seriesDetail(it){
   const k=it.key,seen=isSeen(k),want=isWant(k);
   const chips=[];
   if(it.extra)chips.push(`<span class="tag" style="background:var(--seen);color:var(--seen-ink)">Not on your lists</span>`);
-  if(S.mode==='both')chips.push('<span class="tag tvt">TV</span>');
+  if(isMix())chips.push('<span class="tag tvt">TV</span>');
   if(it.imdbRank)chips.push(`<span class="tag">IMDb TV #${it.imdbRank}</span>`);
   if(it.imdbRating)chips.push(`<span class="tag line">★ ${it.imdbRating}</span>`);
   if(it.emmy?.wins)chips.push(`<span class="tag gold">${it.emmy.wins} Emmy${it.emmy.wins>1?'s':''} for Outstanding Series</span>`);
@@ -922,7 +1107,7 @@ function seriesDetail(it){
     <h2 class="dtitle">${esc(it.title)}</h2>
     <div class="dsub">${esc(yearsTxt(it))}${it.seasons?` · ${it.seasons} season${it.seasons>1?'s':''}`:''}${it.episodes?` · ${it.episodes} episodes`:''}${(it.network||[]).length?` · ${esc(it.network.join(' / '))}`:''}</div>
     <div class="dchips">${chips.join('')}</div></div></div>
-    <div class="dact"><button type="button" class="pill seen" aria-pressed="${seen}">${CHECK}<span>${seen?'Seen':'Mark seen'}</span></button><button type="button" class="pill want" aria-pressed="${want}"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M6 3h12v18l-6-4.5L6 21z"/></svg><span>${want?'On watchlist':'Want to see'}</span></button></div>
+    <div class="dact"><button type="button" class="pill seen" aria-pressed="${seen}">${CHECK}<span>${SEENL(it,seen)}</span></button><button type="button" class="pill want" aria-pressed="${want}"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M6 3h12v18l-6-4.5L6 21z"/></svg><span>${WANTL(it,want)}</span></button></div>
     ${it.seasons>1?`<div class="sec" style="margin-top:16px"><h4>Seasons<small class="sprogtxt">${ssn.length} of ${it.seasons} seasons watched</small></h4><div class="seasons">${Array.from({length:it.seasons},(_,i)=>`<button type="button" class="sbtn" data-sn="${i+1}" aria-pressed="${ssn.includes(i+1)}" aria-label="Season ${i+1}">S${i+1}</button>`).join('')}</div></div>`:''}
     ${it.plot?`<p class="plot">${esc(it.plot)}</p>`:''}
     <dl class="facts">
@@ -997,8 +1182,8 @@ function extraDetail(it){
     <h2 class="dtitle">${esc(it.title)}</h2>
     <div class="dsub">${esc(it.year||'')}</div>
     <div class="dchips"><span class="tag" style="background:var(--seen);color:var(--seen-ink)">Not on your lists</span>${(it.genres||[]).map(g=>`<span class="tag line">${esc(g)}</span>`).join('')}</div></div></div>
-    <div class="dact"><button type="button" class="pill seen" aria-pressed="${seen}">${CHECK}<span>${seen?'Seen':'Mark seen'}</span></button><button type="button" class="pill want" aria-pressed="${want}"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M6 3h12v18l-6-4.5L6 21z"/></svg><span>${want?'On watchlist':'Want to see'}</span></button></div>
-    <dl class="facts"><dt>${it.media==='series'?'Created by':'Director'}</dt><dd>${people(it.media==='series'?it.creators:it.directors)}</dd><dt>${it.media==='series'?'First aired':'Released'}</dt><dd>${esc(it.year||'—')}</dd></dl>`;
+    <div class="dact"><button type="button" class="pill seen" aria-pressed="${seen}">${CHECK}<span>${SEENL(it,seen)}</span></button><button type="button" class="pill want" aria-pressed="${want}"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M6 3h12v18l-6-4.5L6 21z"/></svg><span>${WANTL(it,want)}</span></button></div>
+    <dl class="facts">${it.media==='game'?`<dt>Developer</dt><dd>${companies(it.developers)}</dd>`:`<dt>${it.media==='series'?'Created by':'Director'}</dt><dd>${people(it.media==='series'?it.creators:it.directors)}</dd>`}<dt>${it.media==='series'?'First aired':'Released'}</dt><dd>${esc(it.year||'—')}</dd></dl>`;
   if(by.length)h+=`<div class="sec"><h4>Recommended from<small>${by.length} film${by.length>1?'s':''} on your lists</small></h4><div class="race">${by.map(([s,why])=>{const o=S.items[s];return `<div class="rrow rr2" data-k="${esc(s)}"><div class="thumb">${posterHTML(o)}</div><button type="button" class="nm" data-go="${esc(s)}"><b>${esc(o.title)} <span style="font-weight:400;color:var(--faint)">${esc(o.year||'')}</span></b><span>${esc(why)}</span></button></div>`}).join('')}</div></div>`;
   h+=`<div class="links"><a href="https://www.imdb.com/find/?q=${q}" target="_blank" rel="noopener">IMDb</a><a href="${S.posters[k]?.w?'https://en.wikipedia.org/wiki/'+encodeURIComponent(S.posters[k].w.replace(/ /g,'_')):'https://en.wikipedia.org/wiki/Special:Search?search='+encodeURIComponent(it.title+' '+(it.year||'')+' film')}" target="_blank" rel="noopener">Wikipedia</a><a href="https://www.justwatch.com/us/search?q=${encodeURIComponent(it.title)}" target="_blank" rel="noopener">Where to watch</a></div>
     <p class="note">This film isn't on the IMDb Top 250 or Best Picture lists. Mark it seen or want to see and it stays in your All tab.</p></div>`;
@@ -1010,11 +1195,12 @@ function detail(k,back){
   if(!back&&sheetOpen&&S._cur&&S._cur!==k)sheetStack.push(S._cur);
   S._cur=k;
   if(it.extra&&!it.plot){extraDetail(it);return}
+  if(it.media==='game'){gameDetail(it);return}
   if(it.media==='series'){seriesDetail(it);return}
   const seen=isSeen(k),want=isWant(k),M=MEDIA[it.media]||MEDIA.other;
   const chips=[];
   if(it.extra)chips.push(`<span class="tag" style="background:var(--seen);color:var(--seen-ink)">Not on your lists</span>`);
-  if(S.mode==='both'&&it.media==='movie')chips.push('<span class="tag">Film</span>');
+  if(isMix()&&it.media==='movie')chips.push('<span class="tag">Film</span>');
   if(it.imdbRank)chips.push(`<span class="tag">IMDb #${it.imdbRank}</span>`);
   if(it.imdbRating)chips.push(`<span class="tag line">★ ${it.imdbRating}</span>`);
   if(it.bp)chips.push(`<span class="tag ${it.bp.winner?'gold':'line'}">${it.bp.winner?'Best Picture':'BP nominee'} ${S.ceremonies.find(c=>c.ceremony===it.bp.ceremony)?.held||''}</span>`);
@@ -1029,7 +1215,7 @@ function detail(k,back){
     <h2 class="dtitle">${esc(it.title)}</h2>
     <div class="dsub">${esc(it.year||'')}${it.runtime?` · ${it.runtime} min`:''}${it.countries?.length?` · ${esc(it.countries.join(', '))}`:''}${it.media!=='movie'?` · ${M.label}`:''}</div>
     <div class="dchips">${chips.join('')}</div></div></div>
-    <div class="dact"><button type="button" class="pill seen" aria-pressed="${seen}">${CHECK}<span>${seen?'Seen':'Mark seen'}</span></button><button type="button" class="pill want" aria-pressed="${want}"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M6 3h12v18l-6-4.5L6 21z"/></svg><span>${want?'On watchlist':'Want to see'}</span></button></div>
+    <div class="dact"><button type="button" class="pill seen" aria-pressed="${seen}">${CHECK}<span>${SEENL(it,seen)}</span></button><button type="button" class="pill want" aria-pressed="${want}"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M6 3h12v18l-6-4.5L6 21z"/></svg><span>${WANTL(it,want)}</span></button></div>
     ${it.plot?`<p class="plot">${esc(it.plot)}</p>`:''}
     <dl class="facts">
       ${it.media==='movie'?`<dt>Director</dt><dd>${people(it.directors)}</dd><dt>Writers</dt><dd>${people(it.writers)}</dd><dt>Cast</dt><dd>${people(it.cast)}</dd>${it.studios?.length?`<dt>Production</dt><dd>${companies(it.studios)}</dd>`:''}${it.distributor?`<dt>Distributor</dt><dd>${companies([it.distributor])}</dd>`:''}`:`<dt>${M.creator}</dt><dd>${it.creator?people([it.creator]):'—'}</dd>`}
@@ -1064,21 +1250,26 @@ function filterSheet(){
   sheetStack=[];S._cur=null;
   const all=Object.values(S.items).filter(i=>modeOK(i)&&(!i.extra||S.marks[i.key]||S.f.src.some(x=>x.startsWith('recs'))));
   const genres=[...new Set(all.flatMap(i=>i.genres||[]))].sort();
-  const scopeOK=sc=>!sc||S.mode==='both'||sc===S.mode;
-  const cc={};for(const i of all)for(const c of new Set([...(i.studios||[]),i.distributor,...(i.network||[])].filter(Boolean)))cc[c]=(cc[c]||0)+1;
+  const scopeOK=sc=>!sc||S.modes.includes(sc);
+  const cc={};for(const i of all)for(const c of new Set([...(i.studios||[]),i.distributor,...(i.network||[]),...(i.developers||[]),...(i.publishers||[])].filter(Boolean)))cc[c]=(cc[c]||0)+1;
   const topCos=Object.entries(cc).sort((a,b)=>b[1]-a[1]).slice(0,30);
   const decades=[...new Set(all.map(i=>Math.floor((i.year||0)/10)*10).filter(Boolean))].sort((a,b)=>b-a);
   const medias=[...new Set(all.map(i=>i.media))];
   const grp=(title,key,opts)=>`<div class="fgroup"><h5>${title}</h5><div class="chips">${opts.map(([v,l])=>`<button type="button" class="chip" data-fk="${key}" data-fv="${esc(v)}" aria-pressed="${S.f[key].includes(key==='decade'?+v:v)}">${esc(l)}</button>`).join('')}</div></div>`;
   let h='';
   h+=`<div class="fgroup"><h5>Sort</h5><div class="chips">${Object.entries(SORTS).filter(([v])=>scopeOK(SORT_SCOPE[v])).map(([v,l])=>`<button type="button" class="chip" data-sort="${v}" aria-pressed="${S.f.sort===v}">${l}</button>`).join('')}</div></div>`;
-  h+=grp('In list','src',S.lists.filter(l=>S.mode==='both'||l.media===S.mode).map(l=>[l.id,l.name]));
-  if(S.mode!=='movie'){h+=grp('TV format','formats',Object.entries(FORMATS).map(([k,v])=>[k,v[0]]));h+=grp('TV status','tvst',Object.entries(TVST).map(([k,v])=>[k,v]))}
+  h+=grp('In list','src',S.lists.filter(l=>S.modes.includes(l.media)||!l.builtin).map(l=>[l.id,l.name]));
+  if(S.modes.includes('game')){
+    const pc={};for(const i of all)if(i.media==='game')for(const pl of i._plats||[])pc[pl]=(pc[pl]||0)+1;
+    h+=grp('Platform','plat',PLAT_ORDER.filter(pl=>pc[pl]).map(pl=>[pl,pl]));
+    h+=`<div class="fgroup"><h5>Free-to-play &amp; live service</h5><div class="chips"><button type="button" class="chip" id="f2ptoggle" aria-pressed="${S.f.f2p}">Include free-to-play, live-service and mobile games</button></div></div>`;
+  }
+  if(S.modes.includes('series')){h+=grp('TV format','formats',Object.entries(FORMATS).map(([k,v])=>[k,v[0]]));h+=grp('TV status','tvst',Object.entries(TVST).map(([k,v])=>[k,v]))}
   h+=grp('Story','flags',FLAGS.filter(f=>scopeOK(f[3])).map(f=>[f[0],f[1]]));
   h+=grp('Genre','genre',genres.map(g=>[g,g]));
   h+=grp('Decade','decade',decades.map(d=>[d,d+'s']));
   if(medias.length>1)h+=grp('Media','media',medias.map(m=>[m,MEDIA[m]?.plural||m]));
-  if(topCos.length)h+=`<div class="fgroup"><h5>${S.mode==='series'?'Network or studio':S.mode==='movie'?'Studio or distributor':'Company'}</h5><div class="chips">${topCos.map(([c,n])=>`<button type="button" class="chip" data-company="${esc(c)}" aria-pressed="${norm(S.f.company)===norm(c)}">${esc(c)} <span class="ct">${n}</span></button>`).join('')}</div></div>`;
+  if(topCos.length)h+=`<div class="fgroup"><h5>${S.mode==='series'?'Network or studio':S.mode==='movie'?'Studio or distributor':S.mode==='game'?'Developer or publisher':'Company'}</h5><div class="chips">${topCos.map(([c,n])=>`<button type="button" class="chip" data-company="${esc(c)}" aria-pressed="${norm(S.f.company)===norm(c)}">${esc(c)} <span class="ct">${n}</span></button>`).join('')}</div></div>`;
   h+=`<div class="frow"><button type="button" id="freset">Reset</button><button type="button" class="go" id="fdone">Show results</button></div>`;
   openSheet(h,'Filters & sort');
 }
@@ -1090,10 +1281,10 @@ function listsHTML(){
     <div class="lbtns"><button type="button" class="btn pri" id="bcopy">Copy backup</button><button type="button" class="btn" id="bpaste">Restore from backup</button>${window.top===window?'<button type="button" class="btn" id="bdl">Download backup file</button>':''}</div>
     <div id="restorebox" hidden><div class="field"><label for="restoretxt">Paste backup text</label><textarea id="restoretxt" spellcheck="false"></textarea></div><div class="lbtns"><button type="button" class="btn pri" id="restorego">Restore</button></div></div></div>`;
   h+=`<h2 class="sectitle">Lists</h2>`;
-  for(const l of S.lists.filter(l=>S.mode==='both'||l.media===S.mode||!l.builtin)){
+  for(const l of S.lists.filter(l=>S.modes.includes(l.media)||!l.builtin)){
     const s=l.keys.filter(isSeen).length;
     h+=`<div class="lcard"><div class="lhead"><h3>${esc(l.name)}</h3><span class="cnt">${s}/${l.keys.length} seen</span></div>
-      <p>${l.builtin?{imdb:'The IMDb Top 250 chart as of September 2026. Ranks shift a little every week.',bpw:'Every Academy Award winner for Best Picture, 1st (1929) through 98th (2026) ceremony.',bpn:'Every film nominated for Best Picture, winners included, across all 98 ceremonies.',recs:'Films recommended from your lists that are not on them. The ones you mark also show in All.',imdbtv:'The IMDb Top 250 TV chart as of September 2026.',emw:'Every winner of the Primetime Emmy for Outstanding Drama, Comedy and Limited Series.',emn:'Every nominee in those three Emmy categories, winners included, back to the first ceremonies.',recstv:'Shows recommended from your TV lists that are not on them.'}[l.id]:esc(MEDIA[l.media]?.plural||'')+' · your own list'}</p>
+      <p>${l.builtin?{imdb:'The IMDb Top 250 chart as of September 2026. Ranks shift a little every week.',bpw:'Every Academy Award winner for Best Picture, 1st (1929) through 98th (2026) ceremony.',bpn:'Every film nominated for Best Picture, winners included, across all 98 ceremonies.',recs:'Films recommended from your lists that are not on them. The ones you mark also show in All.',imdbtv:'The IMDb Top 250 TV chart as of September 2026.',emw:'Every winner of the Primetime Emmy for Outstanding Drama, Comedy and Limited Series.',emn:'Every nominee in those three Emmy categories, winners included, back to the first ceremonies.',recstv:'Shows recommended from your TV lists that are not on them.',topg:'The top 250 games by Backloggd player ratings (fetched October 2026), with editions merged and DLC, compilations, mobile, free-to-play and live-service games left out.',gotyw:'Every Game of the Year winner from the D.I.C.E. Awards (since 1998), The Game Awards (since 2014) and BAFTA (since 2004).',gotyn:'Every Game of the Year nominee at those three awards, winners included.',recsg:'Games recommended from your game lists that are not on them.'}[l.id]:esc(MEDIA[l.media]?.plural||'')+' · your own list'}</p>
       <div class="lbtns"><button type="button" class="btn" data-showlist="${l.id}">Show in All</button>${l.builtin?'':`<button type="button" class="btn" data-additem="${l.id}">Add a title</button><button type="button" class="btn danger" data-dellist="${l.id}">Delete list</button>`}</div>
       <div id="addform-${l.id}" hidden></div></div>`;
   }
@@ -1102,7 +1293,7 @@ function listsHTML(){
     <div class="lbtns"><button type="button" class="btn pri" id="nl-go">Create list</button><button type="button" class="btn" id="imp-open">Paste a list file</button></div>
     <div id="impbox" hidden><div class="field"><label for="imptxt">List file (JSON)</label><textarea id="imptxt" spellcheck="false" placeholder='{"list":{"name":"Top 100 games","media":"game"},"items":[{"title":"Hollow Knight","year":2017,"creator":"Team Cherry"}]}'></textarea></div><div class="lbtns"><button type="button" class="btn pri" id="imp-go">Import list</button></div></div></div>`;
   h+=`<div class="lcard"><h3>Install on your phone</h3><p>Android (Chrome): open the menu ⋮ and tap <b>Add to Home screen</b> or <b>Install app</b>. iPhone (Safari): tap Share, then <b>Add to Home Screen</b>. It then opens full screen and works offline.</p></div>
-    <p class="note">Data: IMDb Top 250 and Top 250 TV snapshots (Sept 2026); Oscar nominations from the Academy's records via the open oscar_data dataset; Emmy and Golden Globe series categories from Wikipedia's award histories; film posters from Wikipedia; TV posters from <a href="https://www.tvmaze.com" target="_blank" rel="noopener" style="color:inherit">TVmaze</a> (CC BY-SA), with Wikipedia as backup. Summaries are written for this app.</p>`;
+    <p class="note">Data: IMDb Top 250 and Top 250 TV snapshots (Sept 2026); Oscar nominations from the Academy's records via the open oscar_data dataset; Emmy and Golden Globe series categories from Wikipedia's award histories; film posters from Wikipedia; TV posters from <a href="https://www.tvmaze.com" target="_blank" rel="noopener" style="color:inherit">TVmaze</a> (CC BY-SA), with Wikipedia as backup; game ranking from Backloggd player ratings; Game of the Year races from Wikipedia; game covers from Wikipedia. Summaries are written for this app.</p>`;
   return h;
 }
 function addItemForm(lid){
@@ -1132,7 +1323,7 @@ document.addEventListener('click',e=>{
   const t=e.target.closest('button,[data-k]');if(!t)return;
   const host=e.target.closest('[data-k]');const k=host?.dataset.k;
   if(S.locked){
-    const edit=e.target.closest('.mark,.box,.pill,.sbtn,#bpaste,#restorego,#nl-go,#imp-open,#imp-go,[data-additem],[data-addgo],[data-dellist],[data-delitem]');
+    const edit=e.target.closest('.mark,.box,.pill,.sbtn,[data-lv],#f2ptoggle,#bpaste,#restorego,#nl-go,#imp-open,#imp-go,[data-additem],[data-addgo],[data-dellist],[data-delitem]');
     if(edit){ if(edit.classList.contains('mark')){detail(k);return} toast('View only. Press and hold the lock to make changes.');return }
   }
   const pe=e.target.closest('[data-person]');if(pe){goPerson(pe.dataset.person);return}
@@ -1143,9 +1334,15 @@ document.addEventListener('click',e=>{
   if(t.id==='clearcompany'||e.target.closest('#clearcompany')){S.f.company='';S.shown=90;render();scrollTo(0,0);return}
   const sn=e.target.closest('.sbtn');if(sn){const n=+sn.dataset.sn;setSeason(k,n,!seasonsSeen(k).includes(n));return}
   const ec=e.target.closest('[data-emcat]');if(ec){const c=ec.dataset.emcat,a=S.emCats;const i=a.indexOf(c);if(i<0)a.push(c);else if(a.length>1)a.splice(i,1);store.set('rl.emcats',a);S.shown=90;render();return}
-  const rc=e.target.closest('[data-race]');if(rc){rc.parentElement.querySelectorAll('[data-race]').forEach(b=>b.setAttribute('aria-pressed',b===rc));$('#racebox').innerHTML=raceRows(S.awards[+rc.dataset.race],S._cur);return}
+  const rc=e.target.closest('[data-race]');if(rc){rc.parentElement.querySelectorAll('[data-race]').forEach(b=>b.setAttribute('aria-pressed',b===rc));const [g,ix]=rc.dataset.race.split(':');$('#racebox').innerHTML=raceRows((g==='g'?S.gawards:S.awards)[+ix],S._cur);return}
   if(t.id==='clearperson'||e.target.closest('#clearperson')){S.f.person='';S.shown=90;render();scrollTo(0,0);return}
   if(t.id==='sheetback'||e.target.closest('#sheetback')){const pk=sheetStack.pop();if(pk)detail(pk,true);return}
+  if((e.target.closest('.mark')||e.target.closest('.box'))&&S.items[k]?.media==='game'){const nl=(gLevel(k)+1)%4;setGame(k,nl);toast(GLV[nl]);if(nl)navigator.vibrate?.(12);return}
+  const lvb=e.target.closest('[data-lv]');if(lvb){const n=+lvb.dataset.lv;setGame(k,gLevel(k)===n?0:n);return}
+  const fr=e.target.closest('[data-franchise]');if(fr){goFranchise(fr.dataset.franchise);return}
+  if(t.id==='clearfranchise'||e.target.closest('#clearfranchise')){S.f.franchise='';S.shown=90;render();scrollTo(0,0);return}
+  if(t.id==='f2ptoggle'){S.f.f2p=!S.f.f2p;t.setAttribute('aria-pressed',S.f.f2p);return}
+  const gc=e.target.closest('[data-gcat]');if(gc){const c=gc.dataset.gcat,a=S.gCats;const i=a.indexOf(c);if(i<0)a.push(c);else if(a.length>1)a.splice(i,1);store.set('rl.gcats',a);S.shown=90;render();return}
   if(e.target.closest('.mark')||e.target.closest('.box')){setMark(k,'s',!isSeen(k));if(isSeen(k))navigator.vibrate?.(12);return}
   if(e.target.closest('.pill.seen')){setMark(k,'s',!isSeen(k));return}
   if(e.target.closest('.pill.want')){setMark(k,'w',!isWant(k));toast(isWant(k)?'Added to watchlist':'Removed from watchlist');return}
@@ -1154,12 +1351,12 @@ document.addEventListener('click',e=>{
   const st=e.target.closest('[data-st]');if(st){S.f.status=st.dataset.st;S.shown=90;render();return}
   const om=e.target.closest('[data-om]');if(om){S.oscarMode=om.dataset.om;render();return}
   if(t.id==='more'){S.shown+=S.view==='oscars'?96:120;const y=scrollY;render();scrollTo(0,y);return}
-  if(t.id==='clearall'){S.f={...S.f,q:'',status:'all',src:[],genre:[],decade:[],flags:[],media:[],formats:[],tvst:[],sort:'auto',person:'',company:''};$('#q').value='';render();return}
+  if(t.id==='clearall'){S.f={...S.f,q:'',status:'all',src:[],genre:[],decade:[],flags:[],media:[],formats:[],tvst:[],plat:[],f2p:false,sort:'auto',person:'',company:'',franchise:''};$('#q').value='';render();return}
   if(t.id==='fbtn'||e.target.closest('#fbtn')){filterSheet();return}
   if(t.id==='sheetx'||e.target.closest('#sheetx')){closeSheet();return}
   const fk=e.target.closest('[data-fk]');if(fk){const key=fk.dataset.fk,v=key==='decade'?+fk.dataset.fv:fk.dataset.fv;const a=S.f[key];const i=a.indexOf(v);i<0?a.push(v):a.splice(i,1);fk.setAttribute('aria-pressed',i<0);return}
   const so=e.target.closest('[data-sort]');if(so){S.f.sort=so.dataset.sort;document.querySelectorAll('[data-sort]').forEach(b=>b.setAttribute('aria-pressed',b===so));return}
-  if(t.id==='freset'){S.f={...S.f,src:[],genre:[],decade:[],flags:[],media:[],formats:[],tvst:[],sort:'auto',company:''};filterSheet();return}
+  if(t.id==='freset'){S.f={...S.f,src:[],genre:[],decade:[],flags:[],media:[],formats:[],tvst:[],plat:[],f2p:false,sort:'auto',company:''};filterSheet();return}
   if(t.id==='fdone'){closeSheet();S.shown=90;render();return}
   // lists view
   if(t.id==='bcopy'){const txt=JSON.stringify({app:'reel-ledger',v:1,at:new Date().toISOString(),marks:S.marks,custom:S.custom});
@@ -1170,7 +1367,7 @@ document.addEventListener('click',e=>{
   if(t.id==='nl-go'){const n=$('#nl-name').value.trim();if(!n){toast('Give the list a name first');return}S.custom.lists.push({id:'u'+uid(),name:n,media:$('#nl-media').value,keys:[]});saveCustom();mergeCustom();render();toast('List created. Tap “Add a title” on it.');return}
   if(t.id==='imp-open'){$('#impbox').hidden=!$('#impbox').hidden;return}
   if(t.id==='imp-go'){try{const n=importList(JSON.parse($('#imptxt').value));render();toast(`Imported ${n} titles`)}catch(err){toast('Could not read that list. Check the JSON format.')}return}
-  const sl=e.target.closest('[data-showlist]');if(sl){S.f={...S.f,q:'',status:'all',src:[sl.dataset.showlist],genre:[],decade:[],flags:[],media:[],formats:[],tvst:[],sort:'auto',person:'',company:''};location.hash='#all';return}
+  const sl=e.target.closest('[data-showlist]');if(sl){S.f={...S.f,q:'',status:'all',src:[sl.dataset.showlist],genre:[],decade:[],flags:[],media:[],formats:[],tvst:[],plat:[],sort:'auto',person:'',company:'',franchise:''};location.hash='#all';return}
   const ai=e.target.closest('[data-additem]');if(ai){addItemForm(ai.dataset.additem);return}
   const ag=e.target.closest('[data-addgo]');if(ag){const lid=ag.dataset.addgo,l=S.custom.lists.find(x=>x.id===lid);const title=$('#ai-t-'+lid).value.trim();if(!title){toast('Add a title first');return}
     const key='c-'+uid();S.custom.items[key]={key,media:l.media,title,year:+$('#ai-y-'+lid).value||null,creator:$('#ai-c-'+lid).value.trim(),note:$('#ai-n-'+lid).value.trim()};l.keys.push(key);saveCustom();mergeCustom();render();toast(`Added “${title}”`);return}

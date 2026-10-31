@@ -1,7 +1,7 @@
 // Reel Ledger service worker: keeps the app and its catalog available offline,
 // and caches posters from Wikipedia after the first time they load.
-const VERSION = 'rl-v7';
-const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'data/catalog.json', 'data/recs.json', 'data/extras.json', 'data/tv.json', 'icon-192.png', 'icon-512.png'];
+const VERSION = 'rl-v8';
+const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'data/catalog.json', 'data/recs.json', 'data/extras.json', 'data/tv.json', 'data/games.json', 'icon-192.png', 'icon-512.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(VERSION).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));

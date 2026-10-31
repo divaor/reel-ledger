@@ -7,7 +7,7 @@
   "orientation": "portrait",
   "background_color": "#101216",
   "theme_color": "#101216",
-  "description": "Track the IMDb Top 250 and every Best Picture nominee you have seen.",
+  "description": "Track the films, TV shows and games you have seen and played: IMDb Top 250, Oscars, Emmys, Top 250 games and Game of the Year.",
   "icons": [
     {
       "src": "icon-192.png",

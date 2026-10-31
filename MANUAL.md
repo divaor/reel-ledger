@@ -1,6 +1,6 @@
 # Reel Ledger — manual
 
-Reel Ledger is a phone app for ticking off the films and TV shows you've seen.
+Reel Ledger is a phone app for ticking off the films and TV shows you've seen and the games you've played.
 
 **Movies**
 - **IMDb Top 250** — the chart as of September 2026 (ranks, ratings, vote counts).
@@ -10,15 +10,20 @@ Reel Ledger is a phone app for ticking off the films and TV shows you've seen.
 - **IMDb Top 250 TV** — the TV chart as of September 2026.
 - **Emmys** — every winner and nominee of the Primetime Emmy for Outstanding Drama Series (1951–2026), Outstanding Comedy Series (1952–2026) and Outstanding Limited or Anthology Series (1973–2026). This is TV's Best Picture.
 
-That's 778 films and 741 shows, plus 1,441 recommended films and 1,124 recommended shows that aren't on any list. You can add your own lists of books, games or anything else.
+**Games**
+- **Top 250 games** — ranked by player ratings on [Backloggd](https://backloggd.com) (the Letterboxd of games), counting only games that a lot of people have played, the same idea as IMDb's minimum number of votes.
+- **Game of the Year** — every winner and nominee of the D.I.C.E. Awards' Game of the Year (the industry academy's award, games' Best Picture), with The Game Awards and BAFTA as second opinions.
 
-## Movies, TV or Both
+That's 778 films, 741 shows and 416 games, plus 1,441 recommended films, 1,124 recommended shows and 637 recommended games that aren't on any list. You can add your own lists of books, games or anything else.
 
-The switch at the top (**Movies · TV · Both**) decides what you're looking at. Movies and TV are separate lists with their own progress, tabs and recommendations.
+## Movies, TV, Games or Mix
+
+The switch at the top (**Movies · TV · Games · Mix**) decides what you're looking at. Each is a separate list with its own progress, tabs and recommendations.
 
 - **Movies**: the tabs are All, Top 250, **Oscars**, For you, Lists.
 - **TV**: the same tabs, with **Emmys** in place of Oscars and the Top 250 TV chart.
-- **Both**: everything together. Every poster gets a small **Film** or **TV** tag so you can tell them apart at a glance. Top 250 and Awards get a Movies / TV switch at the top. Use Both when you want to search a person or a company across films and shows, or get For you picks from everything you've watched.
+- **Games**: the same tabs, with **GOTY** (Game of the Year) in place of Oscars and the Top 250 games.
+- **Mix**: several at once. Tap **Mix**, then tap Movies, TV or Games to switch each one on or off (at least one stays on). Every poster gets a small **Film**, **TV** or **Game** tag. Top 250 and Awards get a switch at the top to pick which list. Use Mix to search a person or company across media (a composer who scored films and games, a studio that made both), or to get For you picks from everything.
 
 ## The five tabs
 
@@ -64,9 +69,47 @@ For example, *TV format: Miniseries* + *For you* lists only miniseries recommend
 
 **Awards on a show's card:** its Emmy races (tap a year chip to see that year's full race, with checkboxes), its Emmy record for Outstanding Series, and its Golden Globe record for Best Series.
 
+## Video games
+
+**Your progress has three levels** instead of seen / not seen:
+
+| Level | Means | On the poster |
+|---|---|---|
+| **Played** | Started it, or played some of it | Half-filled green square, counts as *in progress* |
+| **Finished** | Beat the main story or campaign | Green check, counts as done |
+| **100%** | Fully completed: everything, every ending or trophy you care about | Green check plus a gold **100%** badge |
+
+- **Tap the square on a poster** to step up a level: none → Played → Finished → 100% → none. A small message confirms the new level.
+- In the detail card, the three buttons **Played · Finished · 100%** set the level directly; tap the active one again to clear it.
+- Status chips in Games: All · Unplayed · Played · Finished · 100% · Want to play.
+
+**Each game's card shows:**
+- Developer, publisher, director, writers, composer and main cast (all tappable, like film people)
+- **Series**: tap it to see every game in that franchise in order
+- **Platforms**: every console or PC it came out on, with the year of each port (original platforms first)
+- **Versions**: remasters, remakes and definitive editions, with year and platforms, plus *Remake of…* when the game is itself a remake
+- **Players**: single-player, how many on one console, how many online, co-op (local or online), split-screen, competitive, crossplay, and a warning when the **online servers are shut down**
+- **Length**: hours for the main story, main + extras, and 100% (HowLongToBeat-style estimates)
+- **Play it today**: the easiest way to play it now (a remaster, a Switch Online app, original hardware…)
+- Setting, true story, historical, based on, original language, DLC, its Game of the Year record and races, and *More like this*
+- Links to Backloggd, HowLongToBeat and Wikipedia
+
+**Filters for games** (Filters → *Platform*, *Story* and the game sections):
+- **Platform**: PS5, PS4, Switch, Xbox Series, PC… down to NES and Dreamcast. A game counts on every platform it was released on, including later ports.
+- **Play style**: Co-op, Couch co-op / local multiplayer, Split-screen, Online multiplayer (only where servers still run), Single-player only, Open world
+- **Versions**: Has a remaster or remake, Is a remake
+- **Length**: Short (10 h or less), Long (40 h or more); sort by **Shortest to beat**
+- **On current platforms**: playable on PS5, Xbox Series, Switch, Switch 2 or PC
+- **Free-to-play, live-service and mobile games are hidden** unless you turn on *Include free-to-play, live-service and mobile games*. Only a handful exist here anyway (award nominees like Hearthstone or Pokémon Go); the Top 250 leaves them out.
+- Sort by **Most GOTY wins**, rating, rank, newest, oldest…
+
+Example: *Games* + *Couch co-op* + *Split-screen* + *On current platforms* gives a list for a game night on the couch.
+
+**GOTY tab**: one block per year, newest first, with chips to show **D.I.C.E.**, **The Game Awards** and **BAFTA** races (any combination). Award years are the year the games came out (the 2025 games were honored at ceremonies in December 2025 – April 2026). The counter shows how many of that year's nominees you've finished.
+
 ## Studios, distributors and networks
 
-Every film shows its main **production companies** and its **distributor** (the company that first released it in cinemas). Every show shows its **network** (where it first aired) and its **studio**. All of these are tappable, like people's names: tapping *Warner Bros.* or *HBO* lists everything they made or released in the app, with how many you've seen. The small gold number next to a company tells you how many titles it has.
+Every film shows its main **production companies** and its **distributor** (the company that first released it in cinemas). Every show shows its **network** (where it first aired) and its **studio**. Every game shows its **developer** (the studio that made it) and **publisher** (the company that released it). All of these are tappable, like people's names: tapping *Warner Bros.* or *HBO* lists everything they made or released in the app, with how many you've seen. The small gold number next to a company tells you how many titles it has.
 
 Filters also has a **Company** section with the 30 biggest names for what you're viewing.
 
@@ -173,6 +216,8 @@ Reel Ledger is a web app you install from the browser. It needs to be hosted at 
 
 **Preview without hosting:** a copy also runs as a page inside Claude (link on the tracker item). It works the same, but it can't be installed, shows title cards instead of posters, and keeps its own marks. Use Copy backup / Restore to move marks to the installed app.
 
+Game covers come from Wikipedia, like film posters.
+
 Posters download the first time you open the app with internet, then stay cached for offline use. Film posters come from Wikipedia. TV posters come from TVmaze, which allows about 20 lookups every 10 seconds, so the first time you open TV the posters on screen load first and the rest (about 1,800 shows) fill in over several minutes in the background. Titles without a poster show a colored title card; where only a wide logo exists it's centered on a light card.
 
 ## Updating the data later
@@ -188,4 +233,7 @@ Posters download the first time you open the app with internet, then stay cached
 - **Oscar nominations and wins**: the Academy's records, via the open `oscar_data` dataset on GitHub, current through the 98th Academy Awards. Director names were cross-checked against the Academy's Best Director nominations; none conflicted.
 - **Plot, cast, writers, setting, true story and historical flags**: written for this app from general film knowledge. They're right for the vast majority of titles; 56 titles (mostly 1930s nominees and 2025–26 releases) carry a note on their card saying the details are less certain. If something looks off, the IMDb link is one tap away.
 - **Recommendations**: six hand-picked similar films per title, chosen for this app from general film knowledge (not an algorithm on viewing data). Off-list films' details were written the same way; their Oscar records and IMDb links come from the Academy's data where the film was nominated.
+- **Top 250 games**: Backloggd's *Top rated* list (player averages out of 5), fetched October 31, 2026, keeping only games among Backloggd's roughly 1,500 most-played. Without that cutoff the raw list is topped by fan games, obscure visual novels and games a few hundred people rated. Editions and remasters count once under the original game (e.g. *Bloodborne: Game of the Year Edition* → *Bloodborne*); true remakes count separately (*Resident Evil 4* 2005 and 2023). DLC, compilations, mods, free-to-play, live-service and mobile games were left out. Backloggd refused 5 of the popularity pages, so about 60 clearly mainstream games from those gaps (Chrono Trigger, Astro Bot, Final Fantasy VII Rebirth…) were let back in by hand.
+- **Game of the Year awards**: the winners and nominees tables on Wikipedia for the D.I.C.E. Awards (from 1998), The Game Awards (from 2014) and the BAFTA Games Awards (from 2004), current through the 2025 games.
+- **Game details** (platforms, versions, players, length, people): written for this app from general knowledge and checked against the web for recent and obscure games; about a quarter are marked medium confidence. Hours are estimates in the style of HowLongToBeat.
 - **Posters**: films use the lead image of their English Wikipedia article. TV shows use posters from [TVmaze](https://www.tvmaze.com) (data licensed CC BY-SA; each show's card links to its TVmaze page), with Wikipedia as a backup.
