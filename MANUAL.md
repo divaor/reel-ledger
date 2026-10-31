@@ -1,11 +1,24 @@
 # Reel Ledger — manual
 
-Reel Ledger is a phone app for ticking off films you've seen. It ships with two lists:
+Reel Ledger is a phone app for ticking off the films and TV shows you've seen.
 
+**Movies**
 - **IMDb Top 250** — the chart as of September 2026 (ranks, ratings, vote counts).
 - **Best Picture** — every nominee and winner for the Academy Award for Best Picture, 1st ceremony (1929) through 98th (March 2026): 621 films, 98 winners.
 
-There are 778 titles in total (93 films are on both lists). You can add your own lists of series, books, games or anything else.
+**TV**
+- **IMDb Top 250 TV** — the TV chart as of September 2026.
+- **Emmys** — every winner and nominee of the Primetime Emmy for Outstanding Drama Series (1951–2026), Outstanding Comedy Series (1952–2026) and Outstanding Limited or Anthology Series (1973–2026). This is TV's Best Picture.
+
+That's 778 films and 741 shows, plus 1,441 recommended films and 1,124 recommended shows that aren't on any list. You can add your own lists of books, games or anything else.
+
+## Movies, TV or Both
+
+The switch at the top (**Movies · TV · Both**) decides what you're looking at. Movies and TV are separate lists with their own progress, tabs and recommendations.
+
+- **Movies**: the tabs are All, Top 250, **Oscars**, For you, Lists.
+- **TV**: the same tabs, with **Emmys** in place of Oscars and the Top 250 TV chart.
+- **Both**: everything together. Every poster gets a small **Film** or **TV** tag so you can tell them apart at a glance. Top 250 and Awards get a Movies / TV switch at the top. Use Both when you want to search a person or a company across films and shows, or get For you picks from everything you've watched.
 
 ## The five tabs
 
@@ -13,7 +26,7 @@ There are 778 titles in total (93 films are on both lists). You can add your own
 |---|---|
 | **All** | Every title in one poster grid. Your progress on the three built-in lists sits at the top. |
 | **Top 250** | The IMDb chart in rank order. Each poster shows its rank. |
-| **Oscars** | One block per ceremony, newest first: the winner large, the other nominees in a row you swipe sideways. "Winners only" hides the nominees. Each block shows how many of that year's race you've seen (e.g. 6/10). |
+| **Oscars / Emmys** | One block per ceremony, newest first: the winner large, the other nominees in a row you swipe sideways. "Winners only" hides the nominees. Each block shows how many of that year's race you've seen (e.g. 6/10). On Emmys, chips pick which categories to show: Drama, Comedy, Limited. |
 | **For you** | Recommendations gathered from every film you've marked seen, ranked by hits. See below. |
 | **Lists** | Your lists, new lists, backups, and install help. |
 
@@ -24,13 +37,46 @@ There are 778 titles in total (93 films are on both lists). You can add your own
 - In the detail card, **Mark seen** and **Want to see** are the two big buttons. "Want to see" puts an orange bookmark on the poster and adds the film to your watchlist.
 - Marking a film seen removes it from the watchlist automatically.
 
+## TV shows: seasons, format and status
+
+**Season by season.** Shows with more than one season have a row of season buttons (S1, S2, S3…) in their detail card. Tap the ones you've watched. A partly watched show gets a green progress bar on its poster and a badge like *3/8*, and appears under the **Watching** chip. Mark every season (or tap **Mark seen**) and it counts as seen.
+
+**Format** (filter: *TV format*):
+| Format | Means | Examples |
+|---|---|---|
+| Miniseries | One complete story in a single season (limited series) | Chernobyl, Band of Brothers |
+| Serialized | One continuing story across seasons | Breaking Bad, The Sopranos |
+| Semi-serialized | Stand-alone episodes plus season-long arcs | The X-Files, Buffy |
+| Procedural | A case, patient or crime of the week | CSI, House, NCIS |
+| Sitcom | Situation comedy | Seinfeld, The Office |
+| Anthology | New story and cast each season or episode | True Detective, Fargo, Black Mirror |
+| Docuseries | Documentary series | Planet Earth |
+| Sketch / variety | Sketch, talk or variety show | Saturday Night Live |
+| TV film / Special | A single TV movie or one-off program (a few Emmy nominees) | |
+
+**Status** (filter: *TV status*):
+- **Ongoing**: still airing or renewed (as of October 2026).
+- **Concluded**: ended as its creators planned. A finished miniseries shows as *Complete*.
+- **Cancelled**: ended by the network or streamer before the planned end. The card says whether it *wrapped up its story* or left it **unresolved**.
+- **Unresolved ending**: a separate filter for shows that ended on a cliffhanger or with major storylines open.
+
+For example, *TV format: Miniseries* + *For you* lists only miniseries recommended from what you've watched. *TV status: Concluded* hides shows you'd get stuck on.
+
+**Awards on a show's card:** its Emmy races (tap a year chip to see that year's full race, with checkboxes), its Emmy record for Outstanding Series, and its Golden Globe record for Best Series.
+
+## Studios, distributors and networks
+
+Every film shows its main **production companies** and its **distributor** (the company that first released it in cinemas). Every show shows its **network** (where it first aired) and its **studio**. All of these are tappable, like people's names: tapping *Warner Bros.* or *HBO* lists everything they made or released in the app, with how many you've seen. The small gold number next to a company tells you how many titles it has.
+
+Filters also has a **Company** section with the 30 biggest names for what you're viewing.
+
 ## View-only lock
 
 Hand your phone to someone, or just browse, without changing anything:
 
 - **Tap the lock** (top right) to switch to view only. It turns gold and the header says *View only*.
 - While locked, unseen posters have no checkbox, so tapping anywhere on a poster opens its details. Seen films keep their green check.
-- Mark seen, Want to see, the Best Picture race checkboxes, restoring a backup and editing lists are all blocked. Search, filters, sorting and details work as usual.
+- Mark seen, Want to see, season buttons, race checkboxes, restoring a backup and editing lists are all blocked. Search, filters, sorting and details work as usual.
 - **To unlock, press and hold the lock for about a second** until the green ring closes. A quick tap won't unlock it.
 - The lock stays on after you close the app.
 
@@ -55,7 +101,7 @@ Every director, writer and cast name on a detail card can be tapped. It opens th
 
 ## Off-list films
 
-Recommendations include 1,441 films that aren't on the IMDb Top 250 or Best Picture lists. They get the same full detail card as every other film (plot, director, writers, cast, setting, true story, historical, based on), plus a **Recommended from** list showing which of your films pointed to them and why. The 703 that won or were nominated for Oscars in any category also show their Oscar record and link straight to their IMDb page; the rest open an IMDb search. You can mark them seen or want to see like any other film; once marked they also appear in **All**. To browse them all, use Filters → In list → **Recommended picks**.
+Recommendations include 1,441 films that aren't on the IMDb Top 250 or Best Picture lists, and 1,124 shows that aren't on the TV lists. They get the same full detail card as every other film (plot, director, writers, cast, setting, true story, historical, based on), plus a **Recommended from** list showing which of your films pointed to them and why. The 703 that won or were nominated for Oscars in any category also show their Oscar record and link straight to their IMDb page; the rest open an IMDb search. You can mark them seen or want to see like any other film; once marked they also appear in **All**. To browse them all, use Filters → In list → **Recommended films** or **Recommended shows**.
 
 ## For you
 
@@ -63,7 +109,7 @@ The **For you** tab looks at every film you've marked seen, collects their *More
 
 - It shows films you haven't seen yet. The **Seen** chip shows the ones you'd already watched, and **Want to see** shows the ones on your watchlist.
 - Mark a suggestion seen and it leaves the list next time you open the tab. Its own recommendations join in, so the list keeps learning from what you watch.
-- Filters and search work here too: e.g. *Not in English* + *2000s*, or *Recommended picks* to see only discoveries outside your lists.
+- Filters and search work here too: e.g. *Not in English* + *2000s*, or *Recommended films* / *Recommended shows* to see only discoveries outside your lists.
 
 ## Search, status and filters
 
@@ -137,6 +183,8 @@ Posters download from Wikipedia the first time you open the app with internet, t
 ## Sources and accuracy
 
 - **IMDb Top 250**: chart snapshot from September 2026. The live chart moves a few places every week.
+- **Emmy and Golden Globe series awards**: the winners and nominees tables on Wikipedia's pages for each category, current through the September 2026 Emmys (78th) and the January 2026 Golden Globes. The 2026 Emmy comedy winner (*Widow's Bay*) was confirmed from news reports. Early Emmy years where a category was split or combined keep the main series category only.
+- **TV details** (creators, cast, network, studio, seasons, format, status) and **film studios and distributors**: written for this app from general knowledge, the same way as the film details.
 - **Oscar nominations and wins**: the Academy's records, via the open `oscar_data` dataset on GitHub, current through the 98th Academy Awards. Director names were cross-checked against the Academy's Best Director nominations; none conflicted.
 - **Plot, cast, writers, setting, true story and historical flags**: written for this app from general film knowledge. They're right for the vast majority of titles; 56 titles (mostly 1930s nominees and 2025–26 releases) carry a note on their card saying the details are less certain. If something looks off, the IMDb link is one tap away.
 - **Recommendations**: six hand-picked similar films per title, chosen for this app from general film knowledge (not an algorithm on viewing data). Off-list films' details were written the same way; their Oscar records and IMDb links come from the Academy's data where the film was nominated.
