@@ -491,74 +491,91 @@ function posterHTML(it,cls=''){
   const fb=`<span class="fallback" lang="en" style="--h:${hue(it.title)};--fs:${lw>11?11:lw>9?12.5:lw>7?14:15}"><span class="ft">${esc(it.title)}</span><span class="fy">${esc(it.year||'')}</span></span>`;
   return fb+(p?`<img src="${esc(p)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.remove()">`:'');
 }
-async function posterFetcher(){
-  const need=Object.values(S.items).filter(i=>!i.custom&&!i.extra&&!(i.key in S.posters));
-  if(!need.length)return;
-  const save=()=>store.set('rl.posters',S.posters);
-  const titles={};
-  try{
-    // 1) IMDb id -> English Wikipedia article, via Wikidata
-    const withId=need.filter(i=>i.imdb);
-    for(let i=0;i<withId.length;i+=120){
-      const ids=withId.slice(i,i+120);
-      const q=`SELECT ?imdb ?a WHERE{VALUES ?imdb{${ids.map(x=>`"${x.imdb}"`).join(' ')}} ?f wdt:P345 ?imdb. ?a schema:about ?f; schema:isPartOf <https://en.wikipedia.org/>.}`;
-      const r=await fetch('https://query.wikidata.org/sparql?format=json&query='+encodeURIComponent(q),{headers:{Accept:'application/sparql-results+json'}});
-      const j=await r.json();
-      for(const b of j.results.bindings){const it=withId.find(x=>x.imdb===b.imdb.value);if(it)titles[it.key]=decodeURIComponent(b.a.value.split('/wiki/')[1]).replace(/_/g,' ')}
-    }
-  }catch(e){return}   // offline or blocked: keep the typographic covers
-  // 2) titles without a match: Wikipedia search
-  for(const it of need.filter(i=>!titles[i.key])){
-    try{
-      const r=await fetch(`https://en.wikipedia.org/w/api.php?action=query&list=search&srlimit=1&format=json&origin=*&srsearch=${encodeURIComponent(it.title+' '+(it.year||'')+(it.media==='series'?' TV series':' film'))}`);
-      const j=await r.json();const hit=j.query?.search?.[0];if(hit)titles[it.key]=hit.title;
-    }catch(e){}
-  }
-  // 3) article -> lead image (the poster), 50 at a time
-  const keys=Object.keys(titles);
+const save=()=>store.set('rl.posters',S.posters);
+// article titles -> lead images, 50 per request; posters appear batch by batch
+async function imagesFor(map){
+  const keys=Object.keys(map);
   for(let i=0;i<keys.length;i+=50){
     const batch=keys.slice(i,i+50);
     try{
-      const r=await fetch('https://en.wikipedia.org/w/api.php?action=query&prop=pageimages&piprop=thumbnail&pithumbsize=360&pilicense=any&redirects=1&format=json&origin=*&titles='+encodeURIComponent(batch.map(k=>titles[k]).join('|')));
+      const r=await fetch('https://en.wikipedia.org/w/api.php?action=query&prop=pageimages&piprop=thumbnail&pithumbsize=360&pilicense=any&redirects=1&format=json&origin=*&titles='+encodeURIComponent(batch.map(k=>map[k]).join('|')));
       const j=await r.json();
       const alias={};for(const x of [...(j.query?.normalized||[]),...(j.query?.redirects||[])])alias[x.from]=x.to;
       const byTitle={};for(const p of Object.values(j.query?.pages||{}))byTitle[p.title]=p.thumbnail?.source||'';
-      for(const k of batch){let t=titles[k];while(alias[t])t=alias[t];S.posters[k]={u:byTitle[t]||'',w:t};upgradePoster(k)}
+      for(const k of batch){let t=map[k],n=0;while(alias[t]&&n++<5)t=alias[t];S.posters[k]={u:byTitle[t]||'',w:t};upgradePoster(k)}
       save();
     }catch(e){}
   }
-  for(const it of need)if(!(it.key in S.posters))S.posters[it.key]={u:''};
-  save();
+}
+let _pfRunning=false;
+async function posterFetcher(){
+  if(_pfRunning)return;_pfRunning=true;
+  try{
+    const need=Object.values(S.items).filter(i=>!i.custom&&!i.extra&&!(i.key in S.posters));
+    if(!need.length)return;
+    const vis=new Set([...document.querySelectorAll('[data-k]')].map(e=>e.dataset.k));
+    need.sort((a,b)=>(vis.has(b.key)?1:0)-(vis.has(a.key)?1:0)||(modeOK(b)?1:0)-(modeOK(a)?1:0));
+    // 1) IMDb id -> English Wikipedia article via Wikidata, then images right away
+    const withId=need.filter(i=>i.imdb);
+    for(let i=0;i<withId.length;i+=100){
+      const ids=withId.slice(i,i+100),titles={};
+      try{
+        const q=`SELECT ?imdb ?a WHERE{VALUES ?imdb{${ids.map(x=>`"${x.imdb}"`).join(' ')}} ?f wdt:P345 ?imdb. ?a schema:about ?f; schema:isPartOf <https://en.wikipedia.org/>.}`;
+        const r=await fetch('https://query.wikidata.org/sparql?format=json&query='+encodeURIComponent(q),{headers:{Accept:'application/sparql-results+json'}});
+        const j=await r.json();
+        for(const b of j.results.bindings){const it=ids.find(x=>x.imdb===b.imdb.value);if(it)titles[it.key]=decodeURIComponent(b.a.value.split('/wiki/')[1]).replace(/_/g,' ')}
+      }catch(e){}
+      await imagesFor(titles);
+    }
+    // 2) everything else: guessed article titles in bulk, search for the rest
+    const rest=need.filter(i=>!(i.key in S.posters)).map(i=>i.key);
+    for(let i=0;i<rest.length;i+=40)await lazyPosters(rest.slice(i,i+40));
+  }finally{_pfRunning=false}
 }
 const _lp=new Set();
 async function lazyPosters(keys){
   keys=keys.filter(k=>S.items[k]&&!(k in S.posters)&&!_lp.has(k));if(!keys.length)return;
   keys.forEach(k=>_lp.add(k));
-  const guess={};for(const k of keys){const it=S.items[k];guess[k]=it.media==='series'?[`${it.title} (TV series)`,`${it.title} (${it.year} TV series)`,`${it.title} (miniseries)`,it.title]:[`${it.title} (${it.year} film)`,`${it.title} (film)`,it.title]}
+  const guess={};for(const k of keys){const it=S.items[k];guess[k]=it.media==='series'?[`${it.title} (TV series)`,`${it.title} (${it.year} TV series)`,`${it.title} (American TV series)`,`${it.title} (British TV series)`,`${it.title} (miniseries)`,it.title]:[`${it.title} (${it.year} film)`,`${it.title} (film)`,it.title]}
   const titles=[...new Set(Object.values(guess).flat())],info={};
-  try{
-    for(let i=0;i<titles.length;i+=50){
-      const part=titles.slice(i,i+50);
+  for(let i=0;i<titles.length;i+=50){
+    const part=titles.slice(i,i+50);
+    try{
       const r=await fetch('https://en.wikipedia.org/w/api.php?action=query&prop=pageimages|description&piprop=thumbnail&pithumbsize=360&pilicense=any&redirects=1&format=json&origin=*&titles='+encodeURIComponent(part.join('|')));
       const j=await r.json();
       const alias={};for(const x of [...(j.query?.normalized||[]),...(j.query?.redirects||[])])alias[x.from]=x.to;
       const pages={};for(const pg of Object.values(j.query?.pages||{}))if(!('missing' in pg))pages[pg.title]=pg;
       for(const t of part){let u=t,n=0;while(alias[u]&&n++<5)u=alias[u];if(pages[u])info[t]={...pages[u],resolved:u}}
-    }
-  }catch(e){keys.forEach(k=>_lp.delete(k));return}
+    }catch(e){}
+  }
+  const misses=[];
   for(const k of keys){
     const it=S.items[k];let pick=null;
+    const last=guess[k].length-1;
     for(const [n,g] of guess[k].entries()){
       const pg=info[g];if(!pg)continue;const d=pg.description||'';
-      const last=guess[k].length-1;
-      if(n===last&&!(it.media==='series'?/series|television|sitcom|miniseries|show/i:/film/i).test(d))continue;
-      const y=d.match(/\b(18|19|20)\d{2}\b/);if(y&&it.year&&Math.abs(+y[0]-it.year)>1)continue;
+      if(/disambiguation/i.test(d))continue;
+      if(n===last&&!(it.media==='series'?/series|television|sitcom|miniseries|show|programme|anime|drama/i:/film/i).test(d))continue;
+      const y=d.match(/\b(18|19|20)\d{2}\b/);if(y&&it.year&&Math.abs(+y[0]-it.year)>(it.media==='series'?2:1))continue;
       pick=pg;break;
     }
-    S.posters[k]=pick?{u:pick.thumbnail?.source||'',w:pick.resolved}:{u:''};
-    upgradePoster(k);
+    if(pick&&pick.thumbnail?.source){S.posters[k]={u:pick.thumbnail.source,w:pick.resolved};upgradePoster(k)}
+    else misses.push(k);
   }
-  store.set('rl.posters',S.posters);
+  // search for the ones the guesses missed, 4 at a time
+  const found={};
+  for(let i=0;i<misses.length;i+=4){
+    await Promise.all(misses.slice(i,i+4).map(async k=>{
+      const it=S.items[k];
+      try{
+        const r=await fetch(`https://en.wikipedia.org/w/api.php?action=query&list=search&srlimit=1&format=json&origin=*&srsearch=${encodeURIComponent(it.title+' '+(it.year||'')+(it.media==='series'?' TV series':' film'))}`);
+        const j=await r.json();const hit=j.query?.search?.[0];if(hit)found[k]=hit.title;
+      }catch(e){}
+    }));
+  }
+  await imagesFor(found);
+  for(const k of keys)if(!(k in S.posters))S.posters[k]={u:''};
+  save();
 }
 function upgradePoster(k){
   const u=S.posters[k]?.u;if(!u)return;
@@ -717,7 +734,7 @@ function render(){
   statusChips(pool);
   const ph=S.f.person?personHTML(pool):S.f.company?companyHTML(pool):'';
   const sub=S.mode==='both'?S.sub:S.mode;
-  if(S.view==='oscars'){m.innerHTML=ph+(sub==='series'?emmysHTML():oscarsHTML());lazyPosters(pool.filter(i=>i.extra).slice(0,30).map(i=>i.key));return}
+  if(S.view==='oscars'){m.innerHTML=ph+(sub==='series'?emmysHTML():oscarsHTML());lazyPosters(pool.filter(i=>!i.imdb&&!i.custom).slice(0,40).map(i=>i.key));setTimeout(()=>posterFetcher(),300);return}
   const fy=S.view==='foryou';
   const res=sorted(pool.filter(i=>passes(i)),(S.f.person||S.f.company)?'oldest':fy?'hits':S.view==='imdb'?'rank':'popular');
   const head=(ph||(fy?forYouHTML(pool):tallyHTML()))+(S.view==='imdb'?subSeg():'')+`<div class="resinfo"><span>${res.length} ${res.length===1?'title':'titles'}${S.f.sort!=='auto'?' · '+SORTS[S.f.sort]:''}</span>${activeFilterCount()||S.f.q||S.f.person||S.f.company||S.f.status!=='all'?'<button type="button" id="clearall">Clear filters</button>':''}</div>`;
@@ -725,7 +742,8 @@ function render(){
   if(!res.length){m.innerHTML=head+`<div class="empty"><h3>Nothing here</h3><p>${fy&&S.f.status==='unseen'?'You have seen everything your seen titles recommend. Impressive.':S.f.status==='want'?'Tap “Want to see” on any title to build your watchlist.':'No titles match these filters.'}</p></div>`;return}
   m.innerHTML=head+`<div class="grid">${res.slice(0,S.shown).map(i=>cardHTML(i,{rank:S.view==='imdb'||S.f.sort==='rank',...(fy?fyOpts(i):{})})).join('')}</div>`+(res.length>S.shown?`<button type="button" class="more" id="more">Show more (${res.length-S.shown} left)</button>`:'');
   S._res=res;
-  lazyPosters(res.slice(0,S.shown).filter(i=>i.extra).map(i=>i.key));
+  lazyPosters(res.slice(0,S.shown).filter(i=>!i.imdb&&!i.custom).map(i=>i.key));
+  setTimeout(()=>posterFetcher(),300);
 }
 
 /* Oscars view: one block per ceremony */
